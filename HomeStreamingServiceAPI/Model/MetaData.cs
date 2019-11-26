@@ -1,31 +1,29 @@
-﻿namespace HomeStreamingServiceAPI
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace HomeStreamingServiceAPI.Model
 {
-    public class Show
+    public class MetaData
     {
         private int id;
         private string title;
         private string originalTitle;
-        private Franchise franchise;
+        private string description;
 
-        public Show(int id, string title, string originalTitle, Franchise franchise)
+        public MetaData(int id, string title, string originalTitle, string description)
         {
             this.id = id;
             this.title = title;
             this.originalTitle = originalTitle;
-            this.franchise = franchise;
+            this.description = description;
         }
 
-        public Show(int id, string title)
+        public MetaData(int id, string title)
         {
             this.id = id;
             this.title = title;
-        }
-
-        public Show(int id, string title, string originalTitle)
-        {
-            this.id = id;
-            this.title = title;
-            this.originalTitle = originalTitle;
         }
 
         public int Id
@@ -46,10 +44,16 @@
             set => originalTitle = value;
         }
 
-        public Franchise Franchise
+        public string Description
         {
-            get => franchise;
-            set => franchise = value;
+            get => description;
+            set => description = value;
+        }
+
+        public override string ToString()
+        {
+            string s = originalTitle + " " + title + " " + description; 
+            return s;
         }
     }
 }

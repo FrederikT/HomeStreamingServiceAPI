@@ -3,30 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HomeStreamingServiceAPI
+namespace HomeStreamingServiceAPI.Model
 {
     public class Franchise
     {
-        private int id;
         private string name;
+        private int id;
 
-        public Franchise(int id, string name)
+        public Franchise(string name, int id)
         {
+            this.name = name ?? throw new ArgumentNullException(nameof(name));
             this.id = id;
-            this.name = name;
         }
 
-        public int Id
-        {
-            get => id;
-            set => id = value;
-        }
+        public string Name => name;
 
-        public string Name
-        {
-            get => name;
-            set => name = value;
-        }
-
+        public int Id => id;
     }
 }

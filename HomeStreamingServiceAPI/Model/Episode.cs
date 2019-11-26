@@ -2,42 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 
-namespace HomeStreamingServiceAPI
+namespace HomeStreamingServiceAPI.Model
 {
-    public class Episode : Video
+    public class Episode : MetaData
     {
-        private Season season;
-        private int numberInSeason;
+        private int duration;
+        private string filePath;
 
-        public Episode(int id, int time, string[] studio, string description, DateTime releaseDate, List<Genre> genres, Season season, int numberInSeason) : base(id, time, studio, description, releaseDate, genres)
+        public Episode(int id, string title, string originalTitle, string description, int duration) : base(id, title, originalTitle, description)
         {
-            this.season = season;
-            this.numberInSeason = numberInSeason;
+            this.duration = duration;
         }
 
-        public Episode(int id, string description, Season season, int numberInSeason) : base(id, description)
+        public Episode(int id, string title, int duration) : base(id, title)
         {
-            this.season = season;
-            this.numberInSeason = numberInSeason;
+            this.duration = duration;
         }
 
-        public Episode(int id, Season season, int numberInSeason) : base(id)
+        public Episode(int id, string title, string originalTitle, string description, int duration, string filePath) : base(id, title, originalTitle, description)
         {
-            this.season = season;
-            this.numberInSeason = numberInSeason;
+            this.duration = duration;
+            this.filePath = filePath;
         }
 
-        public Season Season
+        public Episode(int id, string title, int duration, string filePath) : base(id, title)
         {
-            get => season;
-            set => season = value;
+            this.duration = duration;
+            this.filePath = filePath;
         }
 
-        public int NumberInSeason
+        public int Duration
         {
-            get => numberInSeason;
-            set => numberInSeason = value;
+            get => duration;
+            set => duration = value;
+        }
+
+        public string FilePath
+        {
+            get => filePath;
+            set => filePath = value;
         }
     }
 }

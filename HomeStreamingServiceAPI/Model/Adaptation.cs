@@ -36,6 +36,17 @@ namespace HomeStreamingServiceAPI.Model
             this.OriginalTitle = originalTitle;
         }
 
+        public Adaptation(MetaData meta, Franchise adaptationFranchise) : base(meta)
+        {
+            this.franchise = adaptationFranchise;
+        }
+
+        protected Adaptation(Adaptation adaptation) : base((MetaData) adaptation)
+        {
+            this.genre = adaptation.genre;
+            this.franchise = adaptation.franchise;
+        }
+
         public List<Genre> Genre => genre;
 
         public Franchise Franchise => franchise;
@@ -43,6 +54,12 @@ namespace HomeStreamingServiceAPI.Model
         public override string ToString()
         {
             return base.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            //should compare by id 
+            return base.Equals(obj);
         }
     }
 }

@@ -26,6 +26,14 @@ namespace HomeStreamingServiceAPI.Model
             this.title = title;
         }
 
+        protected MetaData(MetaData meta)
+        { 
+            this.id = meta.id;
+            this.title = meta.title;
+            this.originalTitle = meta.originalTitle;
+            this.description = meta.description;
+        }
+
         public int Id
         {
             get => id;
@@ -54,6 +62,45 @@ namespace HomeStreamingServiceAPI.Model
         {
             string s = originalTitle + " " + title + " " + description; 
             return s;
+        }
+
+        private sealed class IdEqualityComparer : IEqualityComparer<MetaData>
+        {
+            public bool Equals(MetaData x, MetaData y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                if (x.GetType() != y.GetType()) return false;
+                return x.id == y.id;
+            }
+
+            public int GetHashCode(MetaData obj)
+            {
+                return obj.id;
+            }
+        }
+
+        //!!DEPENDENCY: Other classes use comparison only by id!
+        public override bool Equals(object obj)
+        {
+            MetaData meta=null;
+            try
+            {
+                 meta = (MetaData) obj;
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (this.id == meta.id)
+            {
+                return true;
+            }
+
+            return false;
+
         }
     }
 }

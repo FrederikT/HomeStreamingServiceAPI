@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HomeStreamingServiceAPI.Model;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -15,8 +16,15 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            
-            return new string[] { "value1", "value2" };
+            DBConnect conn = new DBConnect();
+            List<MetaData> list = conn.GetMetaData();
+            List<string> arr = new List<string>();
+            foreach (var meta in list)
+            {
+                arr.Add(meta.Title);
+            }
+
+            return arr.ToArray();
         }
 
         // GET: api/Episode/5

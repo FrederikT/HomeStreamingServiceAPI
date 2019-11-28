@@ -19,5 +19,27 @@ namespace HomeStreamingServiceAPI.Model
         public string Name => name;
 
         public int Id => id;
+
+        //!!DEPENDENCY: Other classes use comparison only by id!
+        public override bool Equals(object obj)
+        {
+            Franchise franchise = null;
+            try
+            {
+                franchise = (Franchise)obj;
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (this.id == franchise.id)
+            {
+                return true;
+            }
+
+            return false;
+
+        }
     }
 }

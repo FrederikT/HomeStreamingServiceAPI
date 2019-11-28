@@ -33,6 +33,11 @@ namespace HomeStreamingServiceAPI.Model
             this.filePath = filePath;
         }
 
+        public Episode(MetaData meta, int duration) : base(meta)
+        {
+            this.duration = duration;
+        }
+
         public int Duration
         {
             get => duration;

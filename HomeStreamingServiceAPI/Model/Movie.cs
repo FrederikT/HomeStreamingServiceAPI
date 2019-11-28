@@ -54,6 +54,11 @@ namespace HomeStreamingServiceAPI.Model
             this.filePath = filePath;
         }
 
+        public Movie(Adaptation adaptation, int duration) : base(adaptation)
+        {
+            this.duration = duration;
+        }
+
         public string FilePath
         {
             get => filePath;

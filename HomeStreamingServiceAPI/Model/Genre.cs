@@ -15,5 +15,28 @@ namespace HomeStreamingServiceAPI.Model
         }
 
         public string Name => name;
+
+        
+        public override bool Equals(object obj)
+        {
+            Genre genre = null;
+            try
+            {
+                genre = (Genre)obj;
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (this.name == genre.name)
+            {
+                return true;
+            }
+
+            return false;
+
+        }
+
     }
 }

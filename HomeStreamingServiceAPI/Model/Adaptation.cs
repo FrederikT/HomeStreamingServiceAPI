@@ -7,7 +7,7 @@ namespace HomeStreamingServiceAPI.Model
 {
     public class Adaptation : MetaData
     {
-        private List<Genre> genre;
+        private List<Genre> genre = new List<Genre>();
         private Franchise franchise;
 
         public Adaptation(int id, string title, string originalTitle, string description, List<Genre> genre, Franchise franchise) : base(id, title, originalTitle, description)

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.VisualBasic.CompilerServices;
 
 namespace HomeStreamingServiceAPI.Model
@@ -21,7 +23,7 @@ namespace HomeStreamingServiceAPI.Model
         private List<Adaptation> adaptationList;
         private List<Movie> movieList;
         private List<Episode> episodeList;
-        private List<MetaData> seasonList;
+        private List<Season> seasonList;
         private List<Adaptation> showList;
 
         //Constructor
@@ -47,6 +49,7 @@ namespace HomeStreamingServiceAPI.Model
         {
             try
             {
+                connection.Close();
                 connection.Open();
                 Debug.WriteLine("Successfully connected");
                 return true;
@@ -193,19 +196,57 @@ namespace HomeStreamingServiceAPI.Model
 
         public List<Episode> GetEpisode()
         {
-            episodeList = new List<Episode>();
-            string query = "Select * from Episode";
+
+
+            if (metaDataList == null || metaDataList.Count == 0)
+            {
+                metaDataList = GetMetaData();
+            }
+            if (seasonList == null || seasonList.Count == 0)
+            {
+                seasonList = GetSeason();
+            }
+
+            Dictionary<int, int> episodeSeason = new Dictionary<int, int>();
+            string query = "Select * from Episode_Season";
 
             if (this.OpenConnection() == true)
             {
+
                 //Create Command
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 //Create a data reader and Execute the command
                 MySqlDataReader dataReader = cmd.ExecuteReader();
-                if (metaDataList == null || metaDataList.Count == 0)
+
+
+
+                //Read the data and store them in the list
+                while (dataReader.Read())
                 {
-                    GetMetaData();
+                    int seasonId = int.Parse(dataReader["seasonId"].ToString());
+                    int episodeId = int.Parse(dataReader["episodeId"].ToString());
+                    episodeSeason.Add(episodeId, seasonId);
                 }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+            }
+
+            episodeList = new List<Episode>();
+            query = "Select * from Episode";
+
+            if (this.OpenConnection() == true)
+            {
+                
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+               
 
                 //Read the data and store them in the list
                 while (dataReader.Read())
@@ -218,7 +259,11 @@ namespace HomeStreamingServiceAPI.Model
                     {
                         int index = metaDataList.IndexOf(new MetaData(id, "")); //comparator only checks for id...
                         MetaData meta = metaDataList[index];
-                        Episode episode = new Episode(meta, duration);
+                        int seasonId = episodeSeason[id];
+                        Season yeSeason = new Season(new MetaData(seasonId, " "), null);
+                        int seasonIndex = seasonList.IndexOf(yeSeason);
+                        Season season = seasonList[seasonIndex];
+                        Episode episode = new Episode(meta, season, duration);
                         episodeList.Add(episode);
                     }
                     catch (Exception e)
@@ -241,6 +286,17 @@ namespace HomeStreamingServiceAPI.Model
 
         public List<Adaptation> GetAdaptation()
         {
+
+            if (metaDataList == null || metaDataList.Count == 0)
+            {
+                metaDataList = GetMetaData();
+            }
+
+            if (franchiseList == null || franchiseList.Count == 0)
+            {
+                GetFranchise();
+            }
+
             adaptationList = new List<Adaptation>();
             string query = "Select * from Adaptation";
 
@@ -250,35 +306,32 @@ namespace HomeStreamingServiceAPI.Model
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 //Create a data reader and Execute the command
                 MySqlDataReader dataReader = cmd.ExecuteReader();
-                if (metaDataList == null || metaDataList.Count == 0)
-                {
-                    GetMetaData();
-                }
 
-                if (franchiseList == null || franchiseList.Count == 0)
-                {
-                    GetFranchise();
-                }
 
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
                     int id = int.Parse(dataReader["ID"].ToString());
-                    int franchise = int.Parse(dataReader["franchise"].ToString());
-
+                    int franchise = -1; // id cannot be negative -> -1 is not initialized (=NULL, but int cant be null)
+                    if (!dataReader.IsDBNull(1))
+                    {
+                        franchise = int.Parse(dataReader["franchise"].ToString());
+                    }
+                            
+                   
                     try
                     {
                         int index = metaDataList.IndexOf(new MetaData(id, "")); //comparator only checks for id...
                         MetaData meta = metaDataList[index];
                         Franchise adaptationFranchise = null;
-                        if (franchise != null)
+                        if (franchise != -1)
                         {
                             index = franchiseList.IndexOf(new Franchise("", franchise));
                             adaptationFranchise = franchiseList[index];
                         }
 
                         Adaptation adaptation = new Adaptation(meta, adaptationFranchise);
-
+                        adaptationList.Add(adaptation);
                     }
                     catch (Exception e)
                     {
@@ -289,7 +342,7 @@ namespace HomeStreamingServiceAPI.Model
 
                 foreach (var adaption in adaptationList)
                 {
-                    GetGenreForAdapation(adaption.Id);
+                    GetGenreForAdaptation(adaption.Id);
                 }
 
                 //close Data Reader
@@ -303,10 +356,14 @@ namespace HomeStreamingServiceAPI.Model
 
         }
 
-        
-
         public List<Movie> GetMovie()
         {
+
+            if (adaptationList == null || adaptationList.Count == 0)
+            {
+                GetAdaptation();
+            }
+
             movieList = new List<Movie>();
             string query = "Select * from Movie";
 
@@ -316,10 +373,7 @@ namespace HomeStreamingServiceAPI.Model
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 //Create a data reader and Execute the command
                 MySqlDataReader dataReader = cmd.ExecuteReader();
-                if (adaptationList == null || adaptationList.Count == 0)
-                {
-                    GetAdaptation();
-                }
+               
 
                 //Read the data and store them in the list
                 while (dataReader.Read())
@@ -330,8 +384,7 @@ namespace HomeStreamingServiceAPI.Model
                     // NComparator for metadata needed, find element
                     try
                     {
-                        int index = adaptationList.IndexOf(new Adaptation(id, "",
-                            "")); //comparator only checks for id...
+                        int index = adaptationList.IndexOf(new Adaptation(id, "","")); //comparator only checks for id...
                         Adaptation adaptation = adaptationList[index];
                         Movie movie = new Movie(adaptation, duration);
                         movieList.Add(movie);
@@ -355,30 +408,25 @@ namespace HomeStreamingServiceAPI.Model
         }
 
         //get Show -> adaptations w/o child movie
-        public List<Adaptation> GetShows()
+        public List<Adaptation> GetShow()
         {
-            showList = new List<Adaptation>();
+
             if (adaptationList == null || adaptationList.Count == 0)
             {
                 GetAdaptation();
             }
-            if (movieList == null || movieList.Count == 0)
+
+            if (movieList == null ||movieList.Count == 0)
             {
                 GetMovie();
             }
 
+            showList = new List<Adaptation>();
+            
             
             foreach (var adaptation in adaptationList)
             {
-                bool foundMovieForAdaptation = false;
-                foreach (var movie in movieList)
-                {
-                    if (adaptation.Id == movie.Id)
-                    {
-                        foundMovieForAdaptation = true;
-                    }
-                }
-                if (!foundMovieForAdaptation)
+                if (! movieList.Contains(adaptation))
                 {
                     showList.Add(adaptation);
                 }
@@ -390,62 +438,48 @@ namespace HomeStreamingServiceAPI.Model
 
         // get season -> metadata w/o child episode or adaptation
 
-        public List<MetaData> GetSeason()
+        public List<Season> GetSeason()
         {
-            seasonList = new List<MetaData>();
-            if (adaptationList == null || adaptationList.Count == 0)
-            {
-                GetAdaptation();
-            }
-            if (episodeList == null || episodeList.Count == 0)
-            {
-                GetMovie();
-            }
+            seasonList = new List<Season>();
+            var seasonListWithoutShows = new List<MetaData>();
+          
             if (metaDataList == null || metaDataList.Count == 0)
             {
                 GetMetaData();
             }
-
-            foreach (var metadata in metaDataList)
+            if (showList == null || showList.Count == 0)
             {
-                bool foundEpisodeOrAdaptation = false;
-                foreach (var episode in episodeList)
-                {
-                    if (metadata.Id == episode.Id)
-                    {
-                        foundEpisodeOrAdaptation = true;
-                    }
-                }
-                foreach (var adaptation in adaptationList)
-                {
-                    if (metadata.Id == adaptation.Id)
-                    {
-                        foundEpisodeOrAdaptation = true;
-                    }
-                }
-                if (!foundEpisodeOrAdaptation)
-                {
-                    seasonList.Add(metadata);
-                }
+                GetShow();
             }
 
-            return seasonList;
-        }
+            string query ="Select * from metadata where ID NOT in (SELECT id from episode) and id NOT in (SELECT id from adaptation)";
 
-
-        private void GetGenreForAdapation(int adaptionId)
-        {
-            string query = "Select * from Genre_Adaptation";
-
-            if (genreList == null || genreList.Count == 0)
+            if (this.OpenConnection() == true)
             {
-                GetGenre();
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+                //Read the data and store them in the list
+                while (dataReader.Read())
+                {
+                    int id = int.Parse(dataReader["id"].ToString());
+                    string title = dataReader["title"].ToString();
+                    MetaData meta = new MetaData(id, title);
+                    meta.OriginalTitle = dataReader["originalTitle"].ToString();
+                    meta.Description = dataReader["description"].ToString();
+                    seasonListWithoutShows.Add(meta);
+
+                }
+                //close Data Reader
+                dataReader.Close();
+                //close Connection
+                this.CloseConnection();
             }
 
-            if (adaptationList == null || adaptationList.Count == 0)
-            {
-                GetAdaptation();
-            }
+
+
+            query = "Select * from season_show";
 
             if (this.OpenConnection() == true)
             {
@@ -457,7 +491,58 @@ namespace HomeStreamingServiceAPI.Model
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
-                    string name = dataReader["name"].ToString();
+                    int seasonId = int.Parse(dataReader["seasonId"].ToString());
+                    int showId = int.Parse(dataReader["showId"].ToString());
+                    int indexOfSeasonInList = seasonListWithoutShows.IndexOf(new MetaData(seasonId, " "));
+                    foreach (var show in showList)
+                    {
+                        if (show.Id == showId)
+                        {
+                            seasonList.Add(new Season(seasonListWithoutShows[indexOfSeasonInList], show));
+                        }
+                    }
+
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+            }
+
+            return seasonList;
+        }
+
+
+        private void GetGenreForAdaptation(int adaptionId)
+        {
+            string query = "Select * from Genre_Adaptation where adaptation = '"+adaptionId+"'";
+
+            if (genreList == null || genreList.Count == 0)
+            {
+                GetGenre();
+            }
+
+            if (adaptationList == null || adaptationList.Count == 0)
+            {
+                GetAdaptation();
+            }
+
+
+
+
+            if (this.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store them in the list
+                while (dataReader.Read())
+                {
+                    string name = dataReader["genre"].ToString();
                     Genre genre = new Genre(name);
                     int genreIndex = genreList.IndexOf(genre);
                     Adaptation adaptation = adaptationList[adaptationList.IndexOf(new Adaptation(adaptionId, "", ""))];
@@ -472,6 +557,251 @@ namespace HomeStreamingServiceAPI.Model
             }
 
         }
+
+        private int getLastID(string tableName)
+        {
+            int id = -1;
+            string sql = "Select Max(id) from " + tableName;
+            if (this.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(sql, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store
+                while (dataReader.Read())
+                {
+                    id = int.Parse(dataReader["id"].ToString());
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+            }
+
+            return id;
+        }
+
+        public void AddMetadata(int id, string title, string originalTitle, string description)
+        {
+            String sql = "INSERT INTO `metadata` (`ID`, `title`, `originalTitle`, `description`) VALUES(";
+            if (id >= 0)
+            {
+                sql += "'"+id + "', ";
+            }else
+            {
+                sql += "NULL, ";
+            }
+            if (title != null)
+            {
+                sql += "'" + title + "',";
+            }
+            else
+            {
+                sql += "NULL, ";
+            }
+            if (originalTitle != null)
+            {
+                sql += "'" + originalTitle + "', ";
+            }
+            else
+            {
+                sql += "NULL, ";
+            }
+            if (description!= null)
+            {
+                sql += "'" + description + "')"; 
+            }
+            else
+            {
+                sql += "NULL)";
+            }
+            executeSQL(sql);
+        }
+
+        public void AddMetadata(MetaData meta)
+        {
+            AddMetadata(meta.Id, meta.Title, meta.OriginalTitle, meta.Description);
+        }
+
+        public void AddSeason(int id, string title, string originalTitle, string description, int showId)
+        {
+            AddMetadata(id, title, originalTitle, description);
+
+            if (id >= 0)
+            {
+
+            }
+            else
+            {
+                id = getLastID("metadata");
+            }
+
+            string sql = "INSERT INTO `season_show` (`seasonID`, `showID`) Values('" + id + "', '" + showId + "')";
+            executeSQL(sql);
+        }
+
+        public void AddSeason(int id, string title, string originalTitle, string description, Adaptation show)
+        {
+            AddSeason(id,title,originalTitle,description,show.Id);
+        }
+        
+        public void AddSeason(Season season)
+        { 
+            AddSeason(season.Id, season.Title, season.OriginalTitle, season.Description, season.Show.Id);
+        }
+
+
+        public void AddEpisode(int id, string title, string originalTitle, string description, int duration, Season season)
+        {
+           
+            AddMetadata(id, title, originalTitle, description);
+            
+            if ( id>=0)
+            {
+               
+            }
+            else
+            {
+                 id = getLastID("metadata");
+            }
+
+            string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('"+id+"', '"+duration+"')";
+            executeSQL(sql);
+            
+
+            sql = "Insert into episode_season values('" + id + "', '" + season.Id + "')";
+            executeSQL(sql);
+
+        }
+
+        public void AddEpisode(Episode episode)
+        {
+            MetaData meta = new MetaData(episode.Id, episode.Title, episode.OriginalTitle, episode.Description);
+            AddMetadata(meta);
+            int id;
+
+            if (episode.Id >= 0)
+            {
+                id = episode.Id;
+            }
+            else
+            {
+                id = getLastID("metadata");
+            }
+            string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('" + id + "', '" + episode.Duration + "')";
+            executeSQL(sql);
+
+            sql = "Insert into episode_season values('" + id + "', '" + episode.Season.Id + "')";
+            executeSQL(sql);
+        }
+
+        public void addAdaptation(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList)
+        {
+            int mId;
+            AddMetadata(id, title, originalTitle, description);
+            if (id >= 0)
+            {
+                mId = id;
+            }
+            else
+            {
+                mId = getLastID("metadata");
+            }
+            string sql = "INSERT INTO `adaptation` (`ID`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
+            executeSQL(sql);
+
+            foreach (var genre in genreList)
+            {
+                sql = "INSERT INTO `genre_adaptation` (`genre`, `adaptation`) Values('" + genre.Name + "', '" + mId + "')";
+                executeSQL(sql);
+            }
+
+
+        }
+
+        public void addAdaptation(Adaptation adaptation)
+        {
+            addAdaptation(adaptation.Id, adaptation.Title, adaptation.OriginalTitle, adaptation.Description, adaptation.Franchise, adaptation.Genre);
+            
+        }
+
+        public void addMovie(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList, int duration)
+        {
+            int mId;
+            addAdaptation(id, title, originalTitle, description, franchise, genreList);
+            if (id >= 0)
+            {
+                mId = id;
+            }
+            else
+            {
+                mId = getLastID("metadata");
+            }
+            string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + duration + "')";
+            executeSQL(sql);
+
+        }
+
+        public void addMovie(Movie movie)
+        {
+            int mId;
+            addAdaptation(movie.Id, movie.Title, movie.OriginalTitle, movie.Description, movie.Franchise, movie.Genre);
+            if (movie.Id >= 0)
+            {
+                mId = movie.Id;
+            }
+            else
+            {
+                mId = getLastID("metadata");
+            }
+            string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
+            executeSQL(sql);
+
+        }
+
+        public void addFranchise(int id, string name)
+        {
+            String sql = "INSERT INTO `franchise` (`ID`, `name`) VALUES(";
+            if (id >= 0)
+            {
+                sql += "'" + id + "', ";
+            }
+            else
+            {
+                sql += "NULL, ";
+            }
+            if (name != null)
+            {
+                sql += "'" + name + "')";
+            }
+            else
+            {
+                sql += "NULL)";
+            }
+            executeSQL(sql);
+
+        }
+
+        public void addFranchise(Franchise franchise)
+        {
+            addFranchise(franchise.Id, franchise.Name);
+        }
+
+        public void addGenre(string name)
+        {
+            string sql = "INSERT INTO `genre` (`name`) Values('" + name + "')";
+            executeSQL(sql);
+        }
+
+        public void addGenre(Genre genre)
+        {
+            addGenre(genre.Name);
+        }
+
 
 
         /* Irrelevant Select

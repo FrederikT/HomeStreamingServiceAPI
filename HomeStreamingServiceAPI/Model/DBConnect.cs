@@ -858,11 +858,14 @@ namespace HomeStreamingServiceAPI.Model
         }
 
         /**
-         * Just to be sure that no constraints are violated the other deletes will call MetaData
+         * Just to be sure that no constraints are violated the other deletes will call deleteMetaData
          * This might be unnessesary but can not damage the data in the database.
          * Since all other classes have MetaData as a base class this is a safe procedure.
          * This also automatically gets rid of errors in the database, e.g. an movie thats also a episode without causing to much trouble
          */
+
+        //Todo: only delete when item is part of class (deleteEpisode will not deleteMovie if no episode with that id exists)
+
 
         public void deleteShow(int id)
         {

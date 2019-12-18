@@ -16,9 +16,18 @@ namespace HomeStreamingServiceAPI.Model
             this.id = id;
         }
 
-        public string Name => name;
+        public string Name
+        {
+            get => name;
+            set => name = value;
+        }
 
-        public int Id => id;
+        public int Id
+        {
+            get => id;
+            set => id = value;
+        }
+
 
         //!!DEPENDENCY: Other classes use comparison only by id!
         public override bool Equals(object obj)

@@ -51,15 +51,19 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPost]
         public void Post([FromBody] string value)
         {
+            DBConnect conn = new DBConnect();
             Episode e = (Episode) JsonConvert.DeserializeObject(value);
+            conn.AddEpisode(e);
         }
 
         // PUT: api/Episode/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            DBConnect conn = new DBConnect();
             Episode e = (Episode)JsonConvert.DeserializeObject(value);
             e.Id = id;
+            conn.AddEpisode(e);
         }
 
         // DELETE: api/Episode/Delete/5
@@ -67,7 +71,7 @@ namespace HomeStreamingServiceAPI.Controllers
         public void Delete(int id)
         {
             DBConnect conn = new DBConnect();
-            conn.
+            conn.deleteEpisode(id);
         }
     }
 }

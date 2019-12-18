@@ -2,42 +2,64 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 
-namespace HomeStreamingServiceAPI
+namespace HomeStreamingServiceAPI.Model
 {
-    public class Episode : Video
+    public class Episode : MetaData
     {
+        private int duration;
+        private string filePath;
         private Season season;
-        private int numberInSeason;
 
-        public Episode(int id, int time, string[] studio, string description, DateTime releaseDate, List<Genre> genres, Season season, int numberInSeason) : base(id, time, studio, description, releaseDate, genres)
+        public Episode(int id, Season season, string title, string originalTitle, string description, int duration) : base(id, title, originalTitle, description)
         {
+            this.duration = duration;
             this.season = season;
-            this.numberInSeason = numberInSeason;
         }
 
-        public Episode(int id, string description, Season season, int numberInSeason) : base(id, description)
+        public Episode(int id, Season season, string title, int duration) : base(id, title)
         {
+            this.duration = duration;
             this.season = season;
-            this.numberInSeason = numberInSeason;
         }
 
-        public Episode(int id, Season season, int numberInSeason) : base(id)
+        public Episode(int id, Season season, string title, string originalTitle, string description, int duration, string filePath) : base(id, title, originalTitle, description)
         {
+            this.duration = duration;
+            this.filePath = filePath;
             this.season = season;
-            this.numberInSeason = numberInSeason;
+        }
+
+        public Episode(int id, Season season, string title, int duration, string filePath) : base(id, title)
+        {
+            this.duration = duration;
+            this.filePath = filePath;
+            this.season = season;
+        }
+
+        public Episode(MetaData meta, Season season, int duration) : base(meta)
+        {
+            this.duration = duration;
+            this.season = season;
+        }
+
+        public int Duration
+        {
+            get => duration;
+            set => duration = value;
+        }
+
+        public string FilePath
+        {
+            get => filePath;
+            set => filePath = value;
         }
 
         public Season Season
         {
             get => season;
             set => season = value;
-        }
-
-        public int NumberInSeason
-        {
-            get => numberInSeason;
-            set => numberInSeason = value;
         }
     }
 }

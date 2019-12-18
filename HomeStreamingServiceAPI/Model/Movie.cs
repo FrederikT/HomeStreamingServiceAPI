@@ -3,70 +3,80 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HomeStreamingServiceAPI
+namespace HomeStreamingServiceAPI.Model
 {
-    public class Movie : Video 
+    public class Movie : Adaptation
     {
-        private string title;
-        private string originalTitle;
-        private Franchise franchise;
+        private int duration;
+        private string filePath;
 
-        public Movie(int id, int time, string[] studio, string description, DateTime releaseDate, List<Genre> genres, string title, string originalTitle, Franchise franchise) : base(id, time, studio, description, releaseDate, genres)
+        public Movie(int id, string title, string originalTitle, string description, List<Genre> genre, Franchise franchise, int duration) : base(id, title, originalTitle, description, genre, franchise)
         {
-            this.title = title;
-            this.originalTitle = originalTitle;
-            this.franchise = franchise;
+            this.duration = duration;
         }
 
-        public Movie(int id, string description, string title, string originalTitle, Franchise franchise) : base(id, description)
+        public Movie(int id, string title, List<Genre> genre, Franchise franchise, int duration) : base(id, title, genre, franchise)
         {
-            this.title = title;
-            this.originalTitle = originalTitle;
-            this.franchise = franchise;
+            this.duration = duration;
         }
 
-        public Movie(int id, string title, string originalTitle, Franchise franchise) : base(id)
+        public Movie(int id, string title, string originalTitle, string description, List<Genre> genre, int duration) : base(id, title, originalTitle, description, genre)
         {
-            this.title = title;
-            this.originalTitle = originalTitle;
-            this.franchise = franchise;
+            this.duration = duration;
         }
 
-        public Movie(int id, int time, string[] studio, string description, DateTime releaseDate, List<Genre> genres, string title, string originalTitle) : base(id, time, studio, description, releaseDate, genres)
+        public Movie(int id, string title, List<Genre> genre, int duration) : base(id, title, genre)
         {
-            this.title = title;
-            this.originalTitle = originalTitle;
+            this.duration = duration;
         }
 
-        public Movie(int id, string description, string title, string originalTitle) : base(id, description)
+        public Movie(int id, string title, string originalTitle, string description, List<Genre> genre, Franchise franchise, int duration, string filePath) : base(id, title, originalTitle, description, genre, franchise)
         {
-            this.title = title;
-            this.originalTitle = originalTitle;
+            this.duration = duration;
+            this.filePath = filePath;
         }
 
-        public Movie(int id, string title, string originalTitle) : base(id)
+        public Movie(int id, string title, List<Genre> genre, Franchise franchise, int duration, string filePath) : base(id, title, genre, franchise)
         {
-            this.title = title;
-            this.originalTitle = originalTitle;
+            this.duration = duration;
+            this.filePath = filePath;
+        }
+
+        public Movie(int id, string title, string originalTitle, string description, List<Genre> genre, int duration, string filePath) : base(id, title, originalTitle, description, genre)
+        {
+            this.duration = duration;
+            this.filePath = filePath;
+        }
+
+        public Movie(int id, string title, List<Genre> genre, int duration, string filePath) : base(id, title, genre)
+        {
+            this.duration = duration;
+            this.filePath = filePath;
+        }
+
+        public Movie(Adaptation adaptation, int duration) : base(adaptation)
+        {
+            this.duration = duration;
+        }
+
+        public string FilePath
+        {
+            get => filePath;
+            set => filePath = value;
         }
 
 
-        public string Title
+        public int Duration => duration;
+
+
+        public override bool Equals(object obj)
         {
-            get => title;
-            set => title = value;
+            return base.Equals(obj);
         }
 
-        public string OriginalTitle
+        public override string ToString()
         {
-            get => originalTitle;
-            set => originalTitle = value;
-        }
-
-        public Franchise Franchise
-        {
-            get => franchise;
-            set => franchise = value;
+            return base.ToString()+"  duration: "+duration;
         }
     }
 }

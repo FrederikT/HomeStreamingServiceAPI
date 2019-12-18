@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 
-namespace HomeStreamingServiceAPI
+namespace HomeStreamingServiceAPI.Model
 {
     public class Genre
     {
@@ -12,13 +11,35 @@ namespace HomeStreamingServiceAPI
 
         public Genre(string name)
         {
-            this.name = name;
+            this.name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public string Name
         {
-            get { return name; }
-            set { string name = value; }
+            get => name;
+            set => name = value;
+        }
+
+
+        public override bool Equals(object obj)
+        {
+            Genre genre = null;
+            try
+            {
+                genre = (Genre)obj;
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (this.name == genre.name)
+            {
+                return true;
+            }
+
+            return false;
+
         }
 
     }

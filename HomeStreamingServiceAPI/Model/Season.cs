@@ -1,59 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 
-namespace HomeStreamingServiceAPI
+namespace HomeStreamingServiceAPI.Model
 {
-    public class Season
+    public class Season : MetaData
     {
-        private int id;
-        private string title;
-        private string originalTitle;
-        private int number;
-        private Show show;
+        private Adaptation show;
+        
 
-        public Season(int id, string title, string originalTitle, int number, Show show)
+        public Season(int id, Adaptation show,  string title, string originalTitle, string description) : base(id, title, originalTitle, description)
         {
-            this.id = id;
-            this.title = title;
-            this.originalTitle = originalTitle;
-            this.number = number;
             this.show = show;
         }
 
-        public Season(int id, Show show)
+        public Season(int id, Adaptation show, string title) : base(id, title)
         {
-            this.id = id;
             this.show = show;
         }
 
-        public int Id
+        public Season(MetaData meta, Adaptation show) : base(meta)
         {
-            get => id;
-            set => id = value;
+            this.show = show;
         }
 
-        public string Title
+
+        public Adaptation Show
         {
-            get => title;
-            set => title = value;
+            get => show;
+            set => show = value;
         }
 
-        public string OriginalTitle
-        {
-            get => originalTitle;
-            set => originalTitle = value;
-        }
-
-        public int Number
-        {
-            get => number;
-            set => number = value;
-        }
-
-        public Show Show
+        public Adaptation Show1
         {
             get => show;
             set => show = value;

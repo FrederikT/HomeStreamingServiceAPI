@@ -20,9 +20,9 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             List<Episode> episodeList  = conn.GetEpisode();
             List<string> arr = new List<string>();
-            foreach (var meta in episodeList)
+            foreach (var episode in episodeList)
             {
-                arr.Add(meta.Title);
+                arr.Add(JsonConvert.SerializeObject(episode));
             }
 
             return arr.ToArray();
@@ -62,10 +62,12 @@ namespace HomeStreamingServiceAPI.Controllers
             e.Id = id;
         }
 
-        // DELETE: api/ApiWithActions/5
+        // DELETE: api/Episode/Delete/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+            DBConnect conn = new DBConnect();
+            conn.
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.VisualBasic.CompilerServices;
+using Org.BouncyCastle.Math.EC.Endo;
 
 namespace HomeStreamingServiceAPI.Model
 {
@@ -654,7 +655,6 @@ namespace HomeStreamingServiceAPI.Model
             AddSeason(season.Id, season.Title, season.OriginalTitle, season.Description, season.Show.Id);
         }
 
-
         public void AddEpisode(int id, string title, string originalTitle, string description, int duration, Season season)
         {
            
@@ -803,6 +803,112 @@ namespace HomeStreamingServiceAPI.Model
         }
 
 
+        public void deleteGenre(string name)
+        {
+            string sql = "Delete from genre_adaption where genre = " + name;
+            executeSQL(sql);
+            sql = "Delete from genre where name = "+name;
+            executeSQL(sql);
+        }
+        
+        public void deleteGenre(Genre genre)
+        {
+            deleteGenre(genre.Name);
+        }
+
+        public void deleteFranchise(int id)
+        {
+            string sql = "Delete from adaption where franchise = " + id;
+            executeSQL(sql);
+            sql = "Delete from franchise where id = " + id;
+            executeSQL(sql);
+        }
+
+        public void deleteFranchise(Franchise franchise)
+        {
+            deleteFranchise(franchise.Id);
+        }
+
+        public void deleteMetaData(int id)
+        {
+            string sql = "Delete from episode_season where episodeId = " + id;
+            executeSQL(sql);
+            sql = "Delete from episode_season where seasonId = " + id;
+            executeSQL(sql);
+            sql = "Delete from episode where id = " + id;
+            executeSQL(sql);
+            sql = "Delete from movie where id = " + id;
+            executeSQL(sql);
+            sql = "Delete from genre_adaptation where adaptation = " + id;
+            executeSQL(sql);
+            sql = "Delete from season_show where seasonId = " + id;
+            executeSQL(sql);
+            sql = "Delete from season_show where showId = " + id;
+            executeSQL(sql);
+            sql = "Delete from adaptation where id = " + id;
+            executeSQL(sql);
+            sql = "Delete from metadata where id = " + id;
+            executeSQL(sql);
+
+        }
+
+        public void deleteMetadata(MetaData meta)
+        {
+            deleteMetaData(meta.Id);
+        }
+
+        /**
+         * Just to be sure that no constraints are violated the other deletes will call MetaData
+         * This might be unnessesary but can not damage the data in the database.
+         * Since all other classes have MetaData as a base class this is a safe procedure.
+         * This also automatically gets rid of errors in the database, e.g. an movie thats also a episode without causing to much trouble
+         */
+
+        public void deleteShow(int id)
+        {
+            deleteMetaData(id);
+        }
+
+        public void deleteShow(Adaptation show)
+        {
+            deleteMetaData(show.Id);
+        }
+
+        public void deleteSeason(int id)
+        {
+            deleteMetaData(id);
+        }
+        public void deleteSeason(Season season)
+        {
+            deleteMetaData(season.Id);
+        }
+
+        public void deleteEpisode(int id)
+        {
+            deleteMetaData(id);
+        }
+        public void deleteEpisode(Episode episode)
+        {
+            deleteMetaData(episode.Id);
+        }
+
+        public void deleteMovie(int id)
+        {
+            deleteMetaData(id);
+        }
+        public void deleteMovie(Movie movie)
+        {
+            deleteMetaData(movie.Id);
+        }
+
+        public void deleteAdaptation(int id)
+        {
+            deleteMetaData(id);
+        }
+        public void deleteAdaptation(Adaptation adaptation)
+        {
+            deleteMetaData(adaptation.Id);
+        }
 
         /* Irrelevant Select
         public List<string>[] Select(string query)

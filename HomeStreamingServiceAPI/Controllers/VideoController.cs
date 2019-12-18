@@ -11,6 +11,8 @@ namespace HomeStreamingServiceAPI.Controllers
     [ApiController]
     public class VideoController : ControllerBase
     {
+
+        // return all episodes and movies??
         // GET: api/Video
         [HttpGet]
         public IEnumerable<string> Get()

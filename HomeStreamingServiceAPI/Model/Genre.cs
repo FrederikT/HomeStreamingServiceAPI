@@ -14,9 +14,13 @@ namespace HomeStreamingServiceAPI.Model
             this.name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        public string Name => name;
+        public string Name
+        {
+            get => name;
+            set => name = value;
+        }
 
-        
+
         public override bool Equals(object obj)
         {
             Genre genre = null;

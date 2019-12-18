@@ -14,66 +14,66 @@ namespace HomeStreamingServiceAPI.Controllers
     public class GenreController : ControllerBase
     {
 
-        // GET: api/Franchise
+        // GET: api/Genre
         [HttpGet]
         public IEnumerable<string> Get()
         {
             DBConnect conn = new DBConnect();
-            List<Franchise> franchiseList = conn.GetFranchise();
+            List<Genre> genreList = conn.GetGenre();
             List<string> arr = new List<string>();
-            foreach (var franchise in franchiseList)
+            foreach (var genre in genreList)
             {
-                arr.Add(JsonConvert.SerializeObject(franchise));
+                arr.Add(JsonConvert.SerializeObject(genre));
             }
 
             return arr.ToArray();
         }
 
-        // GET: api/Franchise/5
-        [HttpGet("{id}", Name = "GetFranchise")]
-        public string Get(int id)
+        // GET: api/Genre/Action
+        [HttpGet("{name}", Name = "GetGenre")]
+        public string Get(string name)
         {
             DBConnect conn = new DBConnect();
-            List<Franchise> franchiseList = conn.GetFranchise();
-            Franchise f = null;
-            foreach (var franchise in franchiseList)
+            List<Genre> genreList = conn.GetGenre();
+            Genre g = null;
+            foreach (var genre in genreList)
             {
-                if (franchise.Id == id)
+                if (genre.Name == name)
                 {
-                    f = franchise;
+                    g = genre;
                 }
             }
 
-            string output = JsonConvert.SerializeObject(f);
+            string output = JsonConvert.SerializeObject(g);
             return output;
         }
 
-        // POST: api/Franchise
+        // POST: api/Genre
         [HttpPost]
         public void Post([FromBody] string value)
         {
             DBConnect conn = new DBConnect();
-            Franchise f = (Franchise)JsonConvert.DeserializeObject(value);
-            conn.addFranchise(f);
+            Genre g = (Genre)JsonConvert.DeserializeObject(value);
+            conn.addGenre(g);
         }
 
-        // PUT: api/Franchise/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        // PUT: api/Genre/Action
+        [HttpPut("{name}")]
+        public void Put(string name, [FromBody] string value)
         {
             DBConnect conn = new DBConnect();
-            Franchise f = (Franchise)JsonConvert.DeserializeObject(value);
-            f.Id = id;
-            conn.addFranchise(f);
+            Genre g = (Genre)JsonConvert.DeserializeObject(value);
+            g.Name = name;
+            conn.addGenre(g);
 
         }
 
-        // DELETE: api/Franchise/Delete/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // DELETE: api/Genre/Delete/Action
+        [HttpDelete("{name}")]
+        public void Delete(string name)
         {
             DBConnect conn = new DBConnect();
-            conn.deleteFranchise(id);
+            conn.deleteGenre(name);
         }
     }
 }

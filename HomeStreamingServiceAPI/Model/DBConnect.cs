@@ -559,7 +559,7 @@ namespace HomeStreamingServiceAPI.Model
 
         }
 
-        private int getLastID(string tableName)
+        private int GetLastID(string tableName)
         {
             int id = -1;
             string sql = "Select Max(id) from " + tableName;
@@ -638,7 +638,7 @@ namespace HomeStreamingServiceAPI.Model
             }
             else
             {
-                id = getLastID("metadata");
+                id = GetLastID("metadata");
             }
 
             string sql = "INSERT INTO `season_show` (`seasonID`, `showID`) Values('" + id + "', '" + showId + "')";
@@ -666,7 +666,7 @@ namespace HomeStreamingServiceAPI.Model
             }
             else
             {
-                 id = getLastID("metadata");
+                 id = GetLastID("metadata");
             }
 
             string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('"+id+"', '"+duration+"')";
@@ -690,7 +690,7 @@ namespace HomeStreamingServiceAPI.Model
             }
             else
             {
-                id = getLastID("metadata");
+                id = GetLastID("metadata");
             }
             string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('" + id + "', '" + episode.Duration + "')";
             executeSQL(sql);
@@ -699,7 +699,7 @@ namespace HomeStreamingServiceAPI.Model
             executeSQL(sql);
         }
 
-        public void addAdaptation(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList)
+        public void AddAdaptation(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList)
         {
             int mId;
             AddMetadata(id, title, originalTitle, description);
@@ -709,7 +709,7 @@ namespace HomeStreamingServiceAPI.Model
             }
             else
             {
-                mId = getLastID("metadata");
+                mId = GetLastID("metadata");
             }
             string sql = "INSERT INTO `adaptation` (`ID`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
             executeSQL(sql);
@@ -723,47 +723,47 @@ namespace HomeStreamingServiceAPI.Model
 
         }
 
-        public void addAdaptation(Adaptation adaptation)
+        public void AddAdaptation(Adaptation adaptation)
         {
-            addAdaptation(adaptation.Id, adaptation.Title, adaptation.OriginalTitle, adaptation.Description, adaptation.Franchise, adaptation.Genre);
+            AddAdaptation(adaptation.Id, adaptation.Title, adaptation.OriginalTitle, adaptation.Description, adaptation.Franchise, adaptation.Genre);
             
         }
 
-        public void addMovie(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList, int duration)
+        public void AddMovie(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList, int duration)
         {
             int mId;
-            addAdaptation(id, title, originalTitle, description, franchise, genreList);
+            AddAdaptation(id, title, originalTitle, description, franchise, genreList);
             if (id >= 0)
             {
                 mId = id;
             }
             else
             {
-                mId = getLastID("metadata");
+                mId = GetLastID("metadata");
             }
             string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + duration + "')";
             executeSQL(sql);
 
         }
 
-        public void addMovie(Movie movie)
+        public void AddMovie(Movie movie)
         {
             int mId;
-            addAdaptation(movie.Id, movie.Title, movie.OriginalTitle, movie.Description, movie.Franchise, movie.Genre);
+            AddAdaptation(movie.Id, movie.Title, movie.OriginalTitle, movie.Description, movie.Franchise, movie.Genre);
             if (movie.Id >= 0)
             {
                 mId = movie.Id;
             }
             else
             {
-                mId = getLastID("metadata");
+                mId = GetLastID("metadata");
             }
             string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
             executeSQL(sql);
 
         }
 
-        public void addFranchise(int id, string name)
+        public void AddFranchise(int id, string name)
         {
             String sql = "INSERT INTO `franchise` (`ID`, `name`) VALUES(";
             if (id >= 0)
@@ -786,24 +786,24 @@ namespace HomeStreamingServiceAPI.Model
 
         }
 
-        public void addFranchise(Franchise franchise)
+        public void AddFranchise(Franchise franchise)
         {
-            addFranchise(franchise.Id, franchise.Name);
+            AddFranchise(franchise.Id, franchise.Name);
         }
 
-        public void addGenre(string name)
+        public void AddGenre(string name)
         {
             string sql = "INSERT INTO `genre` (`name`) Values('" + name + "')";
             executeSQL(sql);
         }
 
-        public void addGenre(Genre genre)
+        public void AddGenre(Genre genre)
         {
-            addGenre(genre.Name);
+            AddGenre(genre.Name);
         }
 
 
-        public void deleteGenre(string name)
+        public void DeleteGenre(string name)
         {
             string sql = "Delete from genre_adaption where genre = " + name;
             executeSQL(sql);
@@ -811,12 +811,12 @@ namespace HomeStreamingServiceAPI.Model
             executeSQL(sql);
         }
         
-        public void deleteGenre(Genre genre)
+        public void DeleteGenre(Genre genre)
         {
-            deleteGenre(genre.Name);
+            DeleteGenre(genre.Name);
         }
 
-        public void deleteFranchise(int id)
+        public void DeleteFranchise(int id)
         {
             string sql = "Delete from adaption where franchise = " + id;
             executeSQL(sql);
@@ -824,12 +824,12 @@ namespace HomeStreamingServiceAPI.Model
             executeSQL(sql);
         }
 
-        public void deleteFranchise(Franchise franchise)
+        public void DeleteFranchise(Franchise franchise)
         {
-            deleteFranchise(franchise.Id);
+            DeleteFranchise(franchise.Id);
         }
 
-        public void deleteMetaData(int id)
+        public void DeleteMetaData(int id)
         {
             string sql = "Delete from episode_season where episodeId = " + id;
             executeSQL(sql);
@@ -852,9 +852,9 @@ namespace HomeStreamingServiceAPI.Model
 
         }
 
-        public void deleteMetadata(MetaData meta)
+        public void DeleteMetadata(MetaData meta)
         {
-            deleteMetaData(meta.Id);
+            DeleteMetaData(meta.Id);
         }
 
         /**
@@ -867,50 +867,50 @@ namespace HomeStreamingServiceAPI.Model
         //Todo: only delete when item is part of class (deleteEpisode will not deleteMovie if no episode with that id exists)
 
 
-        public void deleteShow(int id)
+        public void DeleteShow(int id)
         {
-            deleteMetaData(id);
+            DeleteMetaData(id);
         }
 
-        public void deleteShow(Adaptation show)
+        public void DeleteShow(Adaptation show)
         {
-            deleteMetaData(show.Id);
+            DeleteMetaData(show.Id);
         }
 
-        public void deleteSeason(int id)
+        public void DeleteSeason(int id)
         {
-            deleteMetaData(id);
+            DeleteMetaData(id);
         }
-        public void deleteSeason(Season season)
+        public void DeleteSeason(Season season)
         {
-            deleteMetaData(season.Id);
-        }
-
-        public void deleteEpisode(int id)
-        {
-            deleteMetaData(id);
-        }
-        public void deleteEpisode(Episode episode)
-        {
-            deleteMetaData(episode.Id);
+            DeleteMetaData(season.Id);
         }
 
-        public void deleteMovie(int id)
+        public void DeleteEpisode(int id)
         {
-            deleteMetaData(id);
+            DeleteMetaData(id);
         }
-        public void deleteMovie(Movie movie)
+        public void DeleteEpisode(Episode episode)
         {
-            deleteMetaData(movie.Id);
+           DeleteMetaData(episode.Id);
         }
 
-        public void deleteAdaptation(int id)
+        public void DeleteMovie(int id)
         {
-            deleteMetaData(id);
+            DeleteMetaData(id);
         }
-        public void deleteAdaptation(Adaptation adaptation)
+        public void DeleteMovie(Movie movie)
         {
-            deleteMetaData(adaptation.Id);
+            DeleteMetaData(movie.Id);
+        }
+
+        public void DeleteAdaptation(int id)
+        {
+            DeleteMetaData(id);
+        }
+        public void DeleteAdaptation(Adaptation adaptation)
+        {
+            DeleteMetaData(adaptation.Id);
         }
 
         /* Irrelevant Select

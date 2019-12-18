@@ -71,7 +71,7 @@ namespace HomeStreamingServiceAPI.Controllers
         public void Delete(int id)
         {
             DBConnect conn = new DBConnect();
-            conn.deleteEpisode(id);
+            conn.DeleteEpisode(id);
         }
     }
 }

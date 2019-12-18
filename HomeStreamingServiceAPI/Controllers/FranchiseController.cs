@@ -49,7 +49,7 @@ namespace HomeStreamingServiceAPI.Controllers
         {
             DBConnect conn = new DBConnect();
             Franchise f = (Franchise)JsonConvert.DeserializeObject(value);
-            conn.addFranchise(f);
+            conn.AddFranchise(f);
         }
 
         // PUT: api/Franchise/5
@@ -59,7 +59,7 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             Franchise f = (Franchise)JsonConvert.DeserializeObject(value);
             f.Id = id;
-            conn.addFranchise(f);
+            conn.AddFranchise(f);
 
         }
 
@@ -68,7 +68,7 @@ namespace HomeStreamingServiceAPI.Controllers
         public void Delete(int id)
         {
             DBConnect conn = new DBConnect();
-            conn.deleteFranchise(id);
+            conn.DeleteFranchise(id);
         }
     }
 }

@@ -582,7 +582,7 @@ namespace HomeStreamingServiceAPI.Model
                 //Read the data and store
                 while (dataReader.Read())
                 {
-                    id = int.Parse(dataReader["id"].ToString());
+                    id = int.Parse(dataReader["Max(id)"].ToString());
                 }
 
                 //close Data Reader

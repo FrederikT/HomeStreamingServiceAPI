@@ -32,10 +32,5 @@ namespace HomeStreamingServiceAPI.Model
             set => show = value;
         }
 
-        public Adaptation Show1
-        {
-            get => show;
-            set => show = value;
-        }
     }
 }

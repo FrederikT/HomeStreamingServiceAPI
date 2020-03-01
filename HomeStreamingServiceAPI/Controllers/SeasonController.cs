@@ -56,7 +56,7 @@ namespace HomeStreamingServiceAPI.Controllers
         {
             DBConnect conn = new DBConnect();
             Season s= (Season)JsonConvert.DeserializeObject(value);
-            conn.AddMovie(s);
+            conn.AddSeason(s);
         }
 
         // PUT: api/Season/5

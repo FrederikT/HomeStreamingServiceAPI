@@ -54,7 +54,7 @@ namespace HomeStreamingServiceAPI.Controllers
         {
             DBConnect conn = new DBConnect();
             Genre g = (Genre)JsonConvert.DeserializeObject(value);
-            conn.addGenre(g);
+            conn.AddGenre(g);
         }
 
         // PUT: api/Genre/Action
@@ -64,7 +64,7 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             Genre g = (Genre)JsonConvert.DeserializeObject(value);
             g.Name = name;
-            conn.addGenre(g);
+            conn.AddGenre(g);
 
         }
 
@@ -73,7 +73,7 @@ namespace HomeStreamingServiceAPI.Controllers
         public void Delete(string name)
         {
             DBConnect conn = new DBConnect();
-            conn.deleteGenre(name);
+            conn.DeleteGenre(name);
         }
     }
 }

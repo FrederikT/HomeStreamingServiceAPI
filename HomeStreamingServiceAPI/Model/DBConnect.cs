@@ -254,7 +254,7 @@ namespace HomeStreamingServiceAPI.Model
                 {
                     int id = int.Parse(dataReader["id"].ToString());
                     int duration = int.Parse(dataReader["duration"].ToString());
-
+                    string filePath = dataReader["filePath"].ToString();
                     // NComparator for metadata needed, find element
                     try
                     {
@@ -265,6 +265,10 @@ namespace HomeStreamingServiceAPI.Model
                         int seasonIndex = seasonList.IndexOf(yeSeason);
                         Season season = seasonList[seasonIndex];
                         Episode episode = new Episode(meta, season, duration);
+                        if (filePath != null)
+                        {
+                            episode.FilePath = filePath;
+                        }
                         episodeList.Add(episode);
                     }
                     catch (Exception e)
@@ -381,6 +385,7 @@ namespace HomeStreamingServiceAPI.Model
                 {
                     int id = int.Parse(dataReader["id"].ToString());
                     int duration = int.Parse(dataReader["duration"].ToString());
+                    string filePath = dataReader["filePath"].ToString();
 
                     // NComparator for metadata needed, find element
                     try
@@ -388,6 +393,10 @@ namespace HomeStreamingServiceAPI.Model
                         int index = adaptationList.IndexOf(new Adaptation(id, "","")); //comparator only checks for id...
                         Adaptation adaptation = adaptationList[index];
                         Movie movie = new Movie(adaptation, duration);
+                        if (filePath != null)
+                        {
+                            movie.FilePath = filePath;
+                        }
                         movieList.Add(movie);
                     }
                     catch (Exception e)

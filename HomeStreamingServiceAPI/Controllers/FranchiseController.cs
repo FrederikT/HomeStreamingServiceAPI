@@ -52,7 +52,11 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             try
             {
-                Franchise franchise = new Franchise(Request.Form["Name"], int.Parse(Request.Form["Id"]));
+                Franchise franchise = new Franchise(Request.Form["Name"], -5);
+                if (Request.Form.ContainsKey("Id"))
+                {
+                    franchise.Id = int.Parse(Request.Form["Id"]);
+                }
                 conn.AddFranchise(franchise);
             }
             catch (Exception exception)

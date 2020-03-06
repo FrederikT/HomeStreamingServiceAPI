@@ -55,9 +55,8 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             try
             {
-                Franchise fr = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["FranchiseId"]));
+                
                 Adaptation adaptation = new Adaptation(-5, Request.Form["Title"], "");
-                adaptation.Franchise = fr;
                 if (Request.Form.ContainsKey("Id"))
                 {
                     adaptation.Id = int.Parse(Request.Form["Id"]);
@@ -69,6 +68,10 @@ namespace HomeStreamingServiceAPI.Controllers
                 if (Request.Form.ContainsKey("Description"))
                 {
                     adaptation.Description = Request.Form["Description"];
+                }
+                if (Request.Form.ContainsKey("FranchiseId"))
+                {
+                   adaptation.Franchise = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["FranchiseId"]));
                 }
 
                 if (Request.Form.ContainsKey("Genre"))

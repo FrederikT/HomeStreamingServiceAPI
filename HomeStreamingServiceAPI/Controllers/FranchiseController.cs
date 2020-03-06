@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HomeStreamingServiceAPI.Model;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -45,11 +46,22 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Franchise
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Franchise f = (Franchise)JsonConvert.DeserializeObject(value);
-            conn.AddFranchise(f);
+            try
+            {
+                Franchise franchise = new Franchise(Request.Form["Name"], int.Parse(Request.Form["Id"]));
+                conn.AddFranchise(franchise);
+            }
+            catch (Exception exception)
+            {
+                return exception.ToString();
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Franchise/5

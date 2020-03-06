@@ -50,11 +50,21 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Genre
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Genre g = (Genre)JsonConvert.DeserializeObject(value);
-            conn.AddGenre(g);
+            try
+            {
+                conn.AddGenre( Request.Form["Genre"]);
+            }
+            catch (Exception exception)
+            {
+                return exception.ToString();
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Genre/Action

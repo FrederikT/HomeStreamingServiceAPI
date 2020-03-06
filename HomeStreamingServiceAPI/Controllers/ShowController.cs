@@ -25,7 +25,6 @@ namespace HomeStreamingServiceAPI.Controllers
             {
                 arr.Add(JsonConvert.SerializeObject(show));
             }
-
             return arr.ToArray();
         }
 
@@ -50,11 +49,55 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Show
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+          
             DBConnect conn = new DBConnect();
-            Adaptation s = (Adaptation)JsonConvert.DeserializeObject(value);
-            conn.AddAdaptation(s);
+            try
+            {
+                Franchise fr = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["FranchiseId"]));
+                Adaptation adaptation = new Adaptation(-5, Request.Form["Title"], "");
+                adaptation.Franchise = fr;
+                if (Request.Form.ContainsKey("Id"))
+                {
+                    adaptation.Id = int.Parse(Request.Form["Id"]);
+                }
+                if (Request.Form.ContainsKey("OriginalTitle"))
+                {
+                    adaptation.OriginalTitle = Request.Form["OriginalTitle"];
+                }
+                if (Request.Form.ContainsKey("Description"))
+                {
+                    adaptation.Description = Request.Form["Description"];
+                }
+
+                if (Request.Form.ContainsKey("Genre"))
+                {
+                    // Array will be converted in string
+                    // name;name;...
+                    string genres = Request.Form["Genre"];
+                    string[] genreArr = genres.Split(';');
+                    List<Genre> genreList = new List<Genre>();
+
+                    foreach (var genre in genreArr)
+                    {
+                        genreList.Add(new Genre(genre));
+                    }
+
+                    adaptation.Genre = genreList;
+
+                }
+
+
+                conn.AddAdaptation(adaptation);
+            }
+            catch (Exception exception)
+            {
+                return exception.ToString();
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Show/5
@@ -75,6 +118,6 @@ namespace HomeStreamingServiceAPI.Controllers
             conn.DeleteShow(id);
         }
 
-        // DELETE: api/ApiWithActions/5
+       
     }
 }

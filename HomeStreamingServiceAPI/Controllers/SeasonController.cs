@@ -52,11 +52,35 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Season
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Season s= (Season)JsonConvert.DeserializeObject(value);
-            conn.AddSeason(s);
+            try
+            {
+                Adaptation show = conn.GetShow().Find(Show => Show.Id == int.Parse(Request.Form["ShowId"]));
+                Season season = new Season(-5, show, Request.Form["Title"]);
+                if (Request.Form.ContainsKey("Id"))
+                {
+                    season.Id = int.Parse(Request.Form["Id"]);
+                }
+                if (Request.Form.ContainsKey("OriginalTitle"))
+                {
+                    season.OriginalTitle = Request.Form["OriginalTitle"];
+                }
+                if (Request.Form.ContainsKey("Description"))
+                {
+                    season.Description = Request.Form["Description"];
+                }
+                conn.AddSeason(season);
+            }
+            catch (Exception exception)
+            {
+                return exception.ToString();
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Season/5

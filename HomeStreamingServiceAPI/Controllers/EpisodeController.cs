@@ -49,11 +49,41 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Episode
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Episode e = (Episode) JsonConvert.DeserializeObject(value);
-            conn.AddEpisode(e);
+            try
+            {
+                Season season = conn.GetSeason().Find(Season => Season.Id == int.Parse(Request.Form["SeasonId"]));
+                Episode episode = new Episode(-5, season, Request.Form["Title"],int.Parse(Request.Form["Duration"]));
+                if (Request.Form.ContainsKey("Id"))
+                {
+                    episode.Id = int.Parse(Request.Form["Id"]);
+                }
+                if (Request.Form.ContainsKey("OriginalTitle"))
+                {
+                    episode.OriginalTitle = Request.Form["OriginalTitle"];
+                }
+                if (Request.Form.ContainsKey("Description"))
+                {
+                    episode.Description = Request.Form["Description"];
+                }
+
+                if (Request.Form.ContainsKey("FilePath"))
+                {
+                    episode.FilePath = Request.Form["FilePath"];
+
+                }
+                conn.AddEpisode(episode);
+            }
+            catch (Exception exception)
+            {
+                return exception.ToString();
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Episode/5

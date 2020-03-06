@@ -50,11 +50,62 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Movie
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Movie m = (Movie)JsonConvert.DeserializeObject(value);
-            conn.AddMovie(m);
+            try
+            {
+                List<Genre> genreList = new List<Genre>();
+                if (Request.Form.ContainsKey("Genre"))
+                {
+                    // Array will be converted in string
+                    // name;name;...
+                    string genres = Request.Form["Genre"];
+                    string[] genreArr = genres.Split(';');
+
+
+                    foreach (var genre in genreArr)
+                    {
+                        genreList.Add(new Genre(genre));
+                    }
+                }
+
+             
+                Movie movie = new Movie(-5,  Request.Form["Title"], genreList, int.Parse(Request.Form["Duration"]));
+
+                if (Request.Form.ContainsKey("Id"))
+                {
+                    movie.Id = int.Parse(Request.Form["Id"]);
+                }
+                if (Request.Form.ContainsKey("OriginalTitle"))
+                {
+                    movie.OriginalTitle = Request.Form["OriginalTitle"];
+                }
+                if (Request.Form.ContainsKey("Description"))
+                {
+                    movie.Description = Request.Form["Description"];
+                }
+                if (Request.Form.ContainsKey("FilePath"))
+                {
+                    movie.FilePath = Request.Form["FilePath"];
+
+                }
+                if (Request.Form.ContainsKey("FranchiseId"))
+                {
+                    movie.Franchise = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["FranchiseId"]));
+                }
+              
+
+                conn.AddMovie(movie);
+            }
+            catch (Exception exception)
+            {
+                return exception.ToString();
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Movie/5

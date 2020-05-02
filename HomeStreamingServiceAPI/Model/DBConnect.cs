@@ -101,7 +101,7 @@ namespace HomeStreamingServiceAPI.Model
         public List<MetaData> GetMetaData()
         {
             metaDataList = new List<MetaData>();
-            string query = "Select * from MetaData";
+            string query = "Select * from metadata";
 
             if (this.OpenConnection() == true)
             {
@@ -134,7 +134,7 @@ namespace HomeStreamingServiceAPI.Model
         public List<Genre> GetGenre()
         {
             genreList = new List<Genre>();
-            string query = "Select * from Genre";
+            string query = "Select * from genre";
 
             if (this.OpenConnection() == true)
             {
@@ -166,7 +166,7 @@ namespace HomeStreamingServiceAPI.Model
         public List<Franchise> GetFranchise()
         {
             franchiseList = new List<Franchise>();
-            string query = "Select * from Franchise";
+            string query = "Select * from franchise";
 
             if (this.OpenConnection() == true)
             {
@@ -209,7 +209,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             Dictionary<int, int> episodeSeason = new Dictionary<int, int>();
-            string query = "Select * from Episode_Season";
+            string query = "Select * from episode_season";
 
             if (this.OpenConnection() == true)
             {
@@ -237,7 +237,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             episodeList = new List<Episode>();
-            query = "Select * from Episode";
+            query = "Select * from episode";
 
             if (this.OpenConnection() == true)
             {
@@ -303,7 +303,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             adaptationList = new List<Adaptation>();
-            string query = "Select * from Adaptation";
+            string query = "Select * from adaptation";
 
             if (this.OpenConnection() == true)
             {
@@ -370,7 +370,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             movieList = new List<Movie>();
-            string query = "Select * from Movie";
+            string query = "Select * from movie";
 
             if (this.OpenConnection() == true)
             {
@@ -527,7 +527,7 @@ namespace HomeStreamingServiceAPI.Model
 
         private void GetGenreForAdaptation(int adaptionId)
         {
-            string query = "Select * from Genre_Adaptation where adaptation = '"+adaptionId+"'";
+            string query = "Select * from genre_adaptation where adaptation = '"+adaptionId+"'";
 
             if (genreList == null || genreList.Count == 0)
             {

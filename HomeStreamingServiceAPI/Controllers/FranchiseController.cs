@@ -52,16 +52,16 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             try
             {
-                Franchise franchise = new Franchise(Request.Form["Name"], -5);
-                if (Request.Form.ContainsKey("Id"))
+                Franchise franchise = new Franchise(Request.Form["name"], -5);
+                if (Request.Form.ContainsKey("id"))
                 {
-                    franchise.Id = int.Parse(Request.Form["Id"]);
+                    franchise.Id = int.Parse(Request.Form["id"]);
                 }
                 conn.AddFranchise(franchise);
             }
             catch (Exception exception)
             {
-                return exception.ToString();
+                return exception.Message;
             }
 
             return "OK";
@@ -72,10 +72,20 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Franchise f = (Franchise)JsonConvert.DeserializeObject(value);
             f.Id = id;
             conn.AddFranchise(f);
+            */
 
         }
 

@@ -316,7 +316,7 @@ namespace HomeStreamingServiceAPI.Model
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
-                    int id = int.Parse(dataReader["ID"].ToString());
+                    int id = int.Parse(dataReader["id"].ToString());
                     int franchise = -1; // id cannot be negative -> -1 is not initialized (=NULL, but int cant be null)
                     if (!dataReader.IsDBNull(1))
                     {
@@ -462,7 +462,7 @@ namespace HomeStreamingServiceAPI.Model
                 GetShow();
             }
 
-            string query ="Select * from metadata where ID NOT in (SELECT id from episode) and id NOT in (SELECT id from adaptation)";
+            string query ="Select * from metadata where id NOT in (SELECT id from episode) and id NOT in (SELECT id from adaptation)";
 
             if (this.OpenConnection() == true)
             {
@@ -597,7 +597,7 @@ namespace HomeStreamingServiceAPI.Model
 
         public void AddMetadata(int id, string title, string originalTitle, string description)
         {
-            String sql = "INSERT INTO `metadata` (`ID`, `title`, `originalTitle`, `description`) VALUES(";
+            String sql = "INSERT INTO `metadata` (`id`, `title`, `originalTitle`, `description`) VALUES(";
             if (id >= 0)
             {
                 sql += "'"+id + "', ";
@@ -650,7 +650,7 @@ namespace HomeStreamingServiceAPI.Model
                 id = GetLastID("metadata");
             }
 
-            string sql = "INSERT INTO `season_show` (`seasonID`, `showID`) Values('" + id + "', '" + showId + "')";
+            string sql = "INSERT INTO `season_show` (`seasonId`, `showId`) Values('" + id + "', '" + showId + "')";
             executeSQL(sql);
         }
 
@@ -678,7 +678,7 @@ namespace HomeStreamingServiceAPI.Model
                  id = GetLastID("metadata");
             }
 
-            string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('"+id+"', '"+duration+"')";
+            string sql = "INSERT INTO `episode` (`id`, `duration`) Values('"+id+"', '"+duration+"')";
             executeSQL(sql);
             
 
@@ -699,12 +699,12 @@ namespace HomeStreamingServiceAPI.Model
             }
             else
             {
-                id = GetLastID("metadata");
+                id = GetLastID("metadata"); // getting id from metadata that was inserted
             }
-            string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('" + id + "', '" + episode.Duration + "')";
+            string sql = "INSERT INTO `episode` values('" + id + "', '" + episode.Duration + "', '" + episode.FilePath + "')";
             executeSQL(sql);
 
-            sql = "Insert into episode_season values('" + id + "', '" + episode.Season.Id + "')";
+            sql = "Insert into `episode_season` values('" + id + "', '" + episode.Season.Id + "')";
             executeSQL(sql);
         }
 
@@ -720,7 +720,7 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql = "INSERT INTO `adaptation` (`ID`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
+            string sql = "INSERT INTO `adaptation` (`id`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
             executeSQL(sql);
 
             foreach (var genre in genreList)
@@ -750,7 +750,7 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + duration + "')";
+            string sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + duration + "')";
             executeSQL(sql);
 
         }
@@ -767,14 +767,22 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
+            string sql;
+            if (!String.IsNullOrEmpty(movie.FilePath))
+            {
+                 sql = "INSERT INTO `movie` (`id`, `duration`, `filePath`) Values('" + mId + "', '" + movie.Duration + "', '" + movie.FilePath + "')";
+            }
+            else
+            {
+                sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
+            }
             executeSQL(sql);
 
         }
 
         public void AddFranchise(int id, string name)
         {
-            String sql = "INSERT INTO `franchise` (`ID`, `name`) VALUES(";
+            String sql = "INSERT INTO `franchise` (`id`, `name`) VALUES(";
             if (id >= 0)
             {
                 sql += "'" + id + "', ";

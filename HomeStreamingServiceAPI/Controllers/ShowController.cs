@@ -56,29 +56,29 @@ namespace HomeStreamingServiceAPI.Controllers
             try
             {
                 
-                Adaptation adaptation = new Adaptation(-5, Request.Form["Title"], "");
-                if (Request.Form.ContainsKey("Id"))
+                Adaptation adaptation = new Adaptation(-5, Request.Form["title"], "");
+                if (Request.Form.ContainsKey("id"))
                 {
-                    adaptation.Id = int.Parse(Request.Form["Id"]);
+                    adaptation.Id = int.Parse(Request.Form["id"]);
                 }
-                if (Request.Form.ContainsKey("OriginalTitle"))
+                if (Request.Form.ContainsKey("originalTitle"))
                 {
-                    adaptation.OriginalTitle = Request.Form["OriginalTitle"];
+                    adaptation.OriginalTitle = Request.Form["originalTitle"];
                 }
-                if (Request.Form.ContainsKey("Description"))
+                if (Request.Form.ContainsKey("description"))
                 {
-                    adaptation.Description = Request.Form["Description"];
+                    adaptation.Description = Request.Form["description"];
                 }
-                if (Request.Form.ContainsKey("FranchiseId"))
+                if (Request.Form.ContainsKey("franchiseId"))
                 {
-                   adaptation.Franchise = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["FranchiseId"]));
+                   adaptation.Franchise = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["franchiseId"]));
                 }
 
-                if (Request.Form.ContainsKey("Genre"))
+                if (Request.Form.ContainsKey("genre"))
                 {
                     // Array will be converted in string
                     // name;name;...
-                    string genres = Request.Form["Genre"];
+                    string genres = Request.Form["genre"];
                     string[] genreArr = genres.Split(';');
                     List<Genre> genreList = new List<Genre>();
 
@@ -96,7 +96,7 @@ namespace HomeStreamingServiceAPI.Controllers
             }
             catch (Exception exception)
             {
-                return exception.ToString();
+                return exception.Message;
             }
 
             return "OK";
@@ -107,10 +107,20 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Adaptation s = (Adaptation)JsonConvert.DeserializeObject(value);
             s.Id = id;
             conn.AddAdaptation(s);
+            */
         }
 
         // DELETE: api/Show/Delete/5

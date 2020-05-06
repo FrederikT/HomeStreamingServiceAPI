@@ -56,11 +56,11 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             try
             {
-                conn.AddGenre( Request.Form["Genre"]);
+                conn.AddGenre(Request.Form["genre"]);
             }
             catch (Exception exception)
             {
-                return exception.ToString();
+                return exception.Message;
             }
 
             return "OK";
@@ -71,10 +71,19 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPut("{name}")]
         public void Put(string name, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Genre g = (Genre)JsonConvert.DeserializeObject(value);
             g.Name = name;
-            conn.AddGenre(g);
+            conn.AddGenre(g);*/
 
         }
 

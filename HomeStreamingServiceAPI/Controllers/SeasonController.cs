@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HomeStreamingServiceAPI.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace HomeStreamingServiceAPI.Controllers
@@ -58,25 +59,25 @@ namespace HomeStreamingServiceAPI.Controllers
             DBConnect conn = new DBConnect();
             try
             {
-                Adaptation show = conn.GetShow().Find(Show => Show.Id == int.Parse(Request.Form["ShowId"]));
-                Season season = new Season(-5, show, Request.Form["Title"]);
-                if (Request.Form.ContainsKey("Id"))
+                Adaptation show = conn.GetShow().Find(Show => Show.Id == int.Parse(Request.Form["showId"]));
+                Season season = new Season(-5, show, Request.Form["title"]);
+                if (Request.Form.ContainsKey("id"))
                 {
-                    season.Id = int.Parse(Request.Form["Id"]);
+                    season.Id = int.Parse(Request.Form["id"]);
                 }
-                if (Request.Form.ContainsKey("OriginalTitle"))
+                if (Request.Form.ContainsKey("originalTitle"))
                 {
-                    season.OriginalTitle = Request.Form["OriginalTitle"];
+                    season.OriginalTitle = Request.Form["originalTitle"];
                 }
-                if (Request.Form.ContainsKey("Description"))
+                if (Request.Form.ContainsKey("description"))
                 {
-                    season.Description = Request.Form["Description"];
+                    season.Description = Request.Form["description"];
                 }
                 conn.AddSeason(season);
             }
             catch (Exception exception)
             {
-                return exception.ToString();
+                return exception.Message;
             }
 
             return "OK";
@@ -87,10 +88,18 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
-            DBConnect conn = new DBConnect();
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+           /* DBConnect conn = new DBConnect();
             Season s = (Season)JsonConvert.DeserializeObject(value);
             s.Id = id;
-            conn.AddSeason(s);
+            conn.AddSeason(s);*/
         }
 
         // DELETE: api/Season/Delete/5

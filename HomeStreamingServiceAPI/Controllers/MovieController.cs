@@ -57,11 +57,11 @@ namespace HomeStreamingServiceAPI.Controllers
             try
             {
                 List<Genre> genreList = new List<Genre>();
-                if (Request.Form.ContainsKey("Genre"))
+                if (Request.Form.ContainsKey("genre"))
                 {
                     // Array will be converted in string
                     // name;name;...
-                    string genres = Request.Form["Genre"];
+                    string genres = Request.Form["genre"];
                     string[] genreArr = genres.Split(';');
 
 
@@ -72,28 +72,28 @@ namespace HomeStreamingServiceAPI.Controllers
                 }
 
              
-                Movie movie = new Movie(-5,  Request.Form["Title"], genreList, int.Parse(Request.Form["Duration"]));
+                Movie movie = new Movie(-5,  Request.Form["title"], genreList, int.Parse(Request.Form["duration"]));
 
-                if (Request.Form.ContainsKey("Id"))
+                if (Request.Form.ContainsKey("id"))
                 {
-                    movie.Id = int.Parse(Request.Form["Id"]);
+                    movie.Id = int.Parse(Request.Form["id"]);
                 }
-                if (Request.Form.ContainsKey("OriginalTitle"))
+                if (Request.Form.ContainsKey("originalTitle"))
                 {
-                    movie.OriginalTitle = Request.Form["OriginalTitle"];
+                    movie.OriginalTitle = Request.Form["originalTitle"];
                 }
-                if (Request.Form.ContainsKey("Description"))
+                if (Request.Form.ContainsKey("description"))
                 {
-                    movie.Description = Request.Form["Description"];
+                    movie.Description = Request.Form["description"];
                 }
-                if (Request.Form.ContainsKey("FilePath"))
+                if (Request.Form.ContainsKey("filePath"))
                 {
-                    movie.FilePath = Request.Form["FilePath"];
+                    movie.FilePath = Request.Form["filePath"];
 
                 }
-                if (Request.Form.ContainsKey("FranchiseId"))
+                if (Request.Form.ContainsKey("franchiseId"))
                 {
-                    movie.Franchise = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["FranchiseId"]));
+                    movie.Franchise = conn.GetFranchise().Find(Franchise => Franchise.Id == int.Parse(Request.Form["franchiseId"]));
                 }
               
 
@@ -101,9 +101,10 @@ namespace HomeStreamingServiceAPI.Controllers
             }
             catch (Exception exception)
             {
-                return exception.ToString();
+                          
+                return exception.Message;
             }
-
+            
             return "OK";
 
         }
@@ -112,10 +113,20 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Movie m = (Movie)JsonConvert.DeserializeObject(value);
             m.Id = id;
             conn.AddMovie(m);
+            */
         }
 
         // DELETE: api/Movie/Delete/5

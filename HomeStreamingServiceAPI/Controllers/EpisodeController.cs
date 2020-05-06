@@ -51,35 +51,34 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPost]
         public string Post()
         {
-
             DBConnect conn = new DBConnect();
             try
             {
-                Season season = conn.GetSeason().Find(Season => Season.Id == int.Parse(Request.Form["SeasonId"]));
-                Episode episode = new Episode(-5, season, Request.Form["Title"],int.Parse(Request.Form["Duration"]));
-                if (Request.Form.ContainsKey("Id"))
+                Season season = conn.GetSeason().Find(Season => Season.Id == int.Parse(Request.Form["seasonId"]));
+                Episode episode = new Episode(-5, season, Request.Form["title"],int.Parse(Request.Form["duration"]));
+                if (Request.Form.ContainsKey("id"))
                 {
-                    episode.Id = int.Parse(Request.Form["Id"]);
+                    episode.Id = int.Parse(Request.Form["id"]);
                 }
-                if (Request.Form.ContainsKey("OriginalTitle"))
+                if (Request.Form.ContainsKey("originalTitle"))
                 {
-                    episode.OriginalTitle = Request.Form["OriginalTitle"];
+                    episode.OriginalTitle = Request.Form["originalTitle"];
                 }
-                if (Request.Form.ContainsKey("Description"))
+                if (Request.Form.ContainsKey("description"))
                 {
-                    episode.Description = Request.Form["Description"];
+                    episode.Description = Request.Form["description"];
                 }
 
-                if (Request.Form.ContainsKey("FilePath"))
+                if (Request.Form.ContainsKey("filePath"))
                 {
-                    episode.FilePath = Request.Form["FilePath"];
+                    episode.FilePath = Request.Form["filePath"];
 
                 }
-                conn.AddEpisode(episode);
+                conn.AddEpisode(episode);                               
             }
             catch (Exception exception)
             {
-                return exception.ToString();
+                return exception.Message;
             }
 
             return "OK";
@@ -90,10 +89,19 @@ namespace HomeStreamingServiceAPI.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Episode e = (Episode)JsonConvert.DeserializeObject(value);
             e.Id = id;
-            conn.AddEpisode(e);
+            conn.AddEpisode(e);*/
         }
 
         // DELETE: api/Episode/Delete/5

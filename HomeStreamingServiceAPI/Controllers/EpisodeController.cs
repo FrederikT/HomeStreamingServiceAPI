@@ -49,21 +49,59 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Episode
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
             DBConnect conn = new DBConnect();
-            Episode e = (Episode) JsonConvert.DeserializeObject(value);
-            conn.AddEpisode(e);
+            try
+            {
+                Season season = conn.GetSeason().Find(Season => Season.Id == int.Parse(Request.Form["seasonId"]));
+                Episode episode = new Episode(-5, season, Request.Form["title"],int.Parse(Request.Form["duration"]));
+                if (Request.Form.ContainsKey("id"))
+                {
+                    episode.Id = int.Parse(Request.Form["id"]);
+                }
+                if (Request.Form.ContainsKey("originalTitle"))
+                {
+                    episode.OriginalTitle = Request.Form["originalTitle"];
+                }
+                if (Request.Form.ContainsKey("description"))
+                {
+                    episode.Description = Request.Form["description"];
+                }
+
+                if (Request.Form.ContainsKey("filePath"))
+                {
+                    episode.FilePath = Request.Form["filePath"];
+
+                }
+                conn.AddEpisode(episode);                               
+            }
+            catch (Exception exception)
+            {
+                return exception.Message;
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Episode/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Episode e = (Episode)JsonConvert.DeserializeObject(value);
             e.Id = id;
-            conn.AddEpisode(e);
+            conn.AddEpisode(e);*/
         }
 
         // DELETE: api/Episode/Delete/5

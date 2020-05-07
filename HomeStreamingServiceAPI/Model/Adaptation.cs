@@ -47,9 +47,19 @@ namespace HomeStreamingServiceAPI.Model
             this.franchise = adaptation.franchise;
         }
 
-        public List<Genre> Genre => genre;
+       
+        public  List<Genre> Genre  // property
+        {
+            get { return genre; }   // get method
+            set { genre = value; }  // set method
+        }
 
-        public Franchise Franchise => franchise;
+        public Franchise Franchise {
+            get { return franchise; }   // get method
+            set { franchise = value; }  // set method
+        }
+
+
 
         public override string ToString()
         {

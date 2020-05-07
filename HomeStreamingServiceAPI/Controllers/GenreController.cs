@@ -50,21 +50,40 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Genre
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Genre g = (Genre)JsonConvert.DeserializeObject(value);
-            conn.addGenre(g);
+            try
+            {
+                conn.AddGenre(Request.Form["genre"]);
+            }
+            catch (Exception exception)
+            {
+                return exception.Message;
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Genre/Action
         [HttpPut("{name}")]
         public void Put(string name, [FromBody] string value)
         {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            /*
             DBConnect conn = new DBConnect();
             Genre g = (Genre)JsonConvert.DeserializeObject(value);
             g.Name = name;
-            conn.addGenre(g);
+            conn.AddGenre(g);*/
 
         }
 
@@ -73,7 +92,7 @@ namespace HomeStreamingServiceAPI.Controllers
         public void Delete(string name)
         {
             DBConnect conn = new DBConnect();
-            conn.deleteGenre(name);
+            conn.DeleteGenre(name);
         }
     }
 }

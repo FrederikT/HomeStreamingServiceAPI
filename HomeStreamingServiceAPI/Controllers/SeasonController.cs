@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using HomeStreamingServiceAPI.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Web.CodeGeneration;
 using Newtonsoft.Json;
 
 namespace HomeStreamingServiceAPI.Controllers
@@ -18,9 +20,9 @@ namespace HomeStreamingServiceAPI.Controllers
         // GET: api/Season
         [HttpGet]
         public IEnumerable<string> Get()
-        {
-            
-            DBConnect conn = new DBConnect();
+        {         
+
+            DBConnect conn = new DBConnect();         
             List<Season> seasonList = conn.GetSeason();
             List<string> arr = new List<string>();
             foreach (var season in seasonList)
@@ -52,21 +54,53 @@ namespace HomeStreamingServiceAPI.Controllers
 
         // POST: api/Season
         [HttpPost]
-        public void Post([FromBody] string value)
+        public string Post()
         {
+
             DBConnect conn = new DBConnect();
-            Season s= (Season)JsonConvert.DeserializeObject(value);
-            conn.AddMovie(s);
+            try
+            {
+                Adaptation show = conn.GetShow().Find(Show => Show.Id == int.Parse(Request.Form["showId"]));
+                Season season = new Season(-5, show, Request.Form["title"]);
+                if (Request.Form.ContainsKey("id"))
+                {
+                    season.Id = int.Parse(Request.Form["id"]);
+                }
+                if (Request.Form.ContainsKey("originalTitle"))
+                {
+                    season.OriginalTitle = Request.Form["originalTitle"];
+                }
+                if (Request.Form.ContainsKey("description"))
+                {
+                    season.Description = Request.Form["description"];
+                }
+                conn.AddSeason(season);
+            }
+            catch (Exception exception)
+            {          
+                return exception.Message;
+            }
+
+            return "OK";
+
         }
 
         // PUT: api/Season/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
-            DBConnect conn = new DBConnect();
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+           /* DBConnect conn = new DBConnect();
             Season s = (Season)JsonConvert.DeserializeObject(value);
             s.Id = id;
-            conn.AddSeason(s);
+            conn.AddSeason(s);*/
         }
 
         // DELETE: api/Season/Delete/5

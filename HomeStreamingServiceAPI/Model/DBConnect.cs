@@ -101,7 +101,7 @@ namespace HomeStreamingServiceAPI.Model
         public List<MetaData> GetMetaData()
         {
             metaDataList = new List<MetaData>();
-            string query = "Select * from MetaData";
+            string query = "Select * from metadata";
 
             if (this.OpenConnection() == true)
             {
@@ -134,7 +134,7 @@ namespace HomeStreamingServiceAPI.Model
         public List<Genre> GetGenre()
         {
             genreList = new List<Genre>();
-            string query = "Select * from Genre";
+            string query = "Select * from genre";
 
             if (this.OpenConnection() == true)
             {
@@ -166,7 +166,7 @@ namespace HomeStreamingServiceAPI.Model
         public List<Franchise> GetFranchise()
         {
             franchiseList = new List<Franchise>();
-            string query = "Select * from Franchise";
+            string query = "Select * from franchise";
 
             if (this.OpenConnection() == true)
             {
@@ -209,7 +209,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             Dictionary<int, int> episodeSeason = new Dictionary<int, int>();
-            string query = "Select * from Episode_Season";
+            string query = "Select * from episode_season";
 
             if (this.OpenConnection() == true)
             {
@@ -237,7 +237,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             episodeList = new List<Episode>();
-            query = "Select * from Episode";
+            query = "Select * from episode";
 
             if (this.OpenConnection() == true)
             {
@@ -254,7 +254,7 @@ namespace HomeStreamingServiceAPI.Model
                 {
                     int id = int.Parse(dataReader["id"].ToString());
                     int duration = int.Parse(dataReader["duration"].ToString());
-
+                    string filePath = dataReader["filePath"].ToString();
                     // NComparator for metadata needed, find element
                     try
                     {
@@ -265,6 +265,10 @@ namespace HomeStreamingServiceAPI.Model
                         int seasonIndex = seasonList.IndexOf(yeSeason);
                         Season season = seasonList[seasonIndex];
                         Episode episode = new Episode(meta, season, duration);
+                        if (filePath != null)
+                        {
+                            episode.FilePath = filePath;
+                        }
                         episodeList.Add(episode);
                     }
                     catch (Exception e)
@@ -299,7 +303,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             adaptationList = new List<Adaptation>();
-            string query = "Select * from Adaptation";
+            string query = "Select * from adaptation";
 
             if (this.OpenConnection() == true)
             {
@@ -312,8 +316,11 @@ namespace HomeStreamingServiceAPI.Model
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
-                    int id = int.Parse(dataReader["ID"].ToString());
+                    int id = int.Parse(dataReader["id"].ToString());
                     int franchise = -1; // id cannot be negative -> -1 is not initialized (=NULL, but int cant be null)
+                   
+                    
+                    
                     if (!dataReader.IsDBNull(1))
                     {
                         franchise = int.Parse(dataReader["franchise"].ToString());
@@ -342,7 +349,7 @@ namespace HomeStreamingServiceAPI.Model
                 }
 
                 foreach (var adaption in adaptationList)
-                {
+                {                    
                     GetGenreForAdaptation(adaption.Id);
                 }
 
@@ -366,7 +373,7 @@ namespace HomeStreamingServiceAPI.Model
             }
 
             movieList = new List<Movie>();
-            string query = "Select * from Movie";
+            string query = "Select * from movie";
 
             if (this.OpenConnection() == true)
             {
@@ -381,6 +388,7 @@ namespace HomeStreamingServiceAPI.Model
                 {
                     int id = int.Parse(dataReader["id"].ToString());
                     int duration = int.Parse(dataReader["duration"].ToString());
+                    string filePath = dataReader["filePath"].ToString();
 
                     // NComparator for metadata needed, find element
                     try
@@ -388,6 +396,10 @@ namespace HomeStreamingServiceAPI.Model
                         int index = adaptationList.IndexOf(new Adaptation(id, "","")); //comparator only checks for id...
                         Adaptation adaptation = adaptationList[index];
                         Movie movie = new Movie(adaptation, duration);
+                        if (filePath != null)
+                        {
+                            movie.FilePath = filePath;
+                        }
                         movieList.Add(movie);
                     }
                     catch (Exception e)
@@ -453,7 +465,7 @@ namespace HomeStreamingServiceAPI.Model
                 GetShow();
             }
 
-            string query ="Select * from metadata where ID NOT in (SELECT id from episode) and id NOT in (SELECT id from adaptation)";
+            string query ="Select * from metadata where id NOT in (SELECT id from episode) and id NOT in (SELECT id from adaptation)";
 
             if (this.OpenConnection() == true)
             {
@@ -518,8 +530,8 @@ namespace HomeStreamingServiceAPI.Model
 
         private void GetGenreForAdaptation(int adaptionId)
         {
-            string query = "Select * from Genre_Adaptation where adaptation = '"+adaptionId+"'";
-
+            string query = "Select * from genre_adaptation where adaptation = '"+adaptionId+"'";           
+            
             if (genreList == null || genreList.Count == 0)
             {
                 GetGenre();
@@ -538,15 +550,15 @@ namespace HomeStreamingServiceAPI.Model
                 //Create Command
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 //Create a data reader and Execute the command
-                MySqlDataReader dataReader = cmd.ExecuteReader();
-
+                MySqlDataReader dataReader = cmd.ExecuteReader();              
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
                     string name = dataReader["genre"].ToString();
+                    name = name.Trim();
                     Genre genre = new Genre(name);
                     int genreIndex = genreList.IndexOf(genre);
-                    Adaptation adaptation = adaptationList[adaptationList.IndexOf(new Adaptation(adaptionId, "", ""))];
+                    Adaptation adaptation = adaptationList[adaptationList.IndexOf(new Adaptation(adaptionId, "", ""))];                   
                     adaptation.Genre.Add(genreList[genreIndex]);
                 }
 
@@ -555,7 +567,7 @@ namespace HomeStreamingServiceAPI.Model
 
                 //close Connection
                 this.CloseConnection();
-            }
+             }
 
         }
 
@@ -573,7 +585,7 @@ namespace HomeStreamingServiceAPI.Model
                 //Read the data and store
                 while (dataReader.Read())
                 {
-                    id = int.Parse(dataReader["id"].ToString());
+                    id = int.Parse(dataReader["Max(id)"].ToString());
                 }
 
                 //close Data Reader
@@ -588,7 +600,7 @@ namespace HomeStreamingServiceAPI.Model
 
         public void AddMetadata(int id, string title, string originalTitle, string description)
         {
-            String sql = "INSERT INTO `metadata` (`ID`, `title`, `originalTitle`, `description`) VALUES(";
+            String sql = "INSERT INTO `metadata` (`id`, `title`, `originalTitle`, `description`) VALUES(";
             if (id >= 0)
             {
                 sql += "'"+id + "', ";
@@ -641,7 +653,7 @@ namespace HomeStreamingServiceAPI.Model
                 id = GetLastID("metadata");
             }
 
-            string sql = "INSERT INTO `season_show` (`seasonID`, `showID`) Values('" + id + "', '" + showId + "')";
+            string sql = "INSERT INTO `season_show` (`seasonId`, `showId`) Values('" + id + "', '" + showId + "')";
             executeSQL(sql);
         }
 
@@ -669,7 +681,7 @@ namespace HomeStreamingServiceAPI.Model
                  id = GetLastID("metadata");
             }
 
-            string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('"+id+"', '"+duration+"')";
+            string sql = "INSERT INTO `episode` (`id`, `duration`) Values('"+id+"', '"+duration+"')";
             executeSQL(sql);
             
 
@@ -690,12 +702,12 @@ namespace HomeStreamingServiceAPI.Model
             }
             else
             {
-                id = GetLastID("metadata");
+                id = GetLastID("metadata"); // getting id from metadata that was inserted
             }
-            string sql = "INSERT INTO `episode` (`ID`, `duration`) Values('" + id + "', '" + episode.Duration + "')";
+            string sql = "INSERT INTO `episode` values('" + id + "', '" + episode.Duration + "', '" + episode.FilePath + "')";
             executeSQL(sql);
 
-            sql = "Insert into episode_season values('" + id + "', '" + episode.Season.Id + "')";
+            sql = "Insert into `episode_season` values('" + id + "', '" + episode.Season.Id + "')";
             executeSQL(sql);
         }
 
@@ -711,7 +723,7 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql = "INSERT INTO `adaptation` (`ID`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
+            string sql = "INSERT INTO `adaptation` (`id`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
             executeSQL(sql);
 
             foreach (var genre in genreList)
@@ -741,7 +753,7 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + duration + "')";
+            string sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + duration + "')";
             executeSQL(sql);
 
         }
@@ -758,14 +770,22 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql = "INSERT INTO `movie` (`ID`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
+            string sql;
+            if (!String.IsNullOrEmpty(movie.FilePath))
+            {
+                 sql = "INSERT INTO `movie` (`id`, `duration`, `filePath`) Values('" + mId + "', '" + movie.Duration + "', '" + movie.FilePath + "')";
+            }
+            else
+            {
+                sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
+            }
             executeSQL(sql);
 
         }
 
         public void AddFranchise(int id, string name)
         {
-            String sql = "INSERT INTO `franchise` (`ID`, `name`) VALUES(";
+            String sql = "INSERT INTO `franchise` (`id`, `name`) VALUES(";
             if (id >= 0)
             {
                 sql += "'" + id + "', ";

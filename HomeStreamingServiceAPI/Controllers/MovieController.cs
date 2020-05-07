@@ -100,8 +100,7 @@ namespace HomeStreamingServiceAPI.Controllers
                 conn.AddMovie(movie);
             }
             catch (Exception exception)
-            {
-                          
+            {         
                 return exception.Message;
             }
             

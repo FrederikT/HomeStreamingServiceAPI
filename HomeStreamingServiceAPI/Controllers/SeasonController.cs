@@ -6,6 +6,7 @@ using HomeStreamingServiceAPI.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Web.CodeGeneration;
 using Newtonsoft.Json;
 
 namespace HomeStreamingServiceAPI.Controllers
@@ -19,9 +20,9 @@ namespace HomeStreamingServiceAPI.Controllers
         // GET: api/Season
         [HttpGet]
         public IEnumerable<string> Get()
-        {
-            
-            DBConnect conn = new DBConnect();
+        {         
+
+            DBConnect conn = new DBConnect();         
             List<Season> seasonList = conn.GetSeason();
             List<string> arr = new List<string>();
             foreach (var season in seasonList)
@@ -76,7 +77,7 @@ namespace HomeStreamingServiceAPI.Controllers
                 conn.AddSeason(season);
             }
             catch (Exception exception)
-            {
+            {          
                 return exception.Message;
             }
 

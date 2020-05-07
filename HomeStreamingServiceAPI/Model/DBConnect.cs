@@ -318,6 +318,9 @@ namespace HomeStreamingServiceAPI.Model
                 {
                     int id = int.Parse(dataReader["id"].ToString());
                     int franchise = -1; // id cannot be negative -> -1 is not initialized (=NULL, but int cant be null)
+                   
+                    
+                    
                     if (!dataReader.IsDBNull(1))
                     {
                         franchise = int.Parse(dataReader["franchise"].ToString());
@@ -346,7 +349,7 @@ namespace HomeStreamingServiceAPI.Model
                 }
 
                 foreach (var adaption in adaptationList)
-                {
+                {                    
                     GetGenreForAdaptation(adaption.Id);
                 }
 
@@ -527,8 +530,8 @@ namespace HomeStreamingServiceAPI.Model
 
         private void GetGenreForAdaptation(int adaptionId)
         {
-            string query = "Select * from genre_adaptation where adaptation = '"+adaptionId+"'";
-
+            string query = "Select * from genre_adaptation where adaptation = '"+adaptionId+"'";           
+            
             if (genreList == null || genreList.Count == 0)
             {
                 GetGenre();
@@ -547,15 +550,15 @@ namespace HomeStreamingServiceAPI.Model
                 //Create Command
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 //Create a data reader and Execute the command
-                MySqlDataReader dataReader = cmd.ExecuteReader();
-
+                MySqlDataReader dataReader = cmd.ExecuteReader();              
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
                     string name = dataReader["genre"].ToString();
+                    name = name.Trim();
                     Genre genre = new Genre(name);
                     int genreIndex = genreList.IndexOf(genre);
-                    Adaptation adaptation = adaptationList[adaptationList.IndexOf(new Adaptation(adaptionId, "", ""))];
+                    Adaptation adaptation = adaptationList[adaptationList.IndexOf(new Adaptation(adaptionId, "", ""))];                   
                     adaptation.Genre.Add(genreList[genreIndex]);
                 }
 
@@ -564,7 +567,7 @@ namespace HomeStreamingServiceAPI.Model
 
                 //close Connection
                 this.CloseConnection();
-            }
+             }
 
         }
 

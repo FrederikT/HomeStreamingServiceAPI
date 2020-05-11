@@ -117,6 +117,7 @@ namespace HomeStreamingServiceAPI.Model
                     string title = dataReader["title"].ToString();
                     MetaData meta = new MetaData(id, title);
                     meta.OriginalTitle = dataReader["originalTitle"].ToString();
+                    meta.Description = dataReader["description"].ToString();
                     metaDataList.Add(meta);
                 }
 

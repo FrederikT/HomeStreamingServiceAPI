@@ -727,88 +727,60 @@ namespace HomeStreamingServiceAPI.Model
             DeleteFranchise(franchise.Id);
         }
 
-        public void DeleteMetaData(int id)
+        private void DeleteMedia(int id, string typeCondition, params string[] deleteStatements)
         {
-            string sql = "Delete from episode_season where episodeId = " + id;
-            executeSQL(sql);
-            sql = "Delete from episode_season where seasonId = " + id;
-            executeSQL(sql);
-            sql = "Delete from episode where id = " + id;
-            executeSQL(sql);
-            sql = "Delete from movie where id = " + id;
-            executeSQL(sql);
-            sql = "Delete from genre_adaptation where adaptation = " + id;
-            executeSQL(sql);
-            sql = "Delete from season_show where seasonId = " + id;
-            executeSQL(sql);
-            sql = "Delete from season_show where showId = " + id;
-            executeSQL(sql);
-            sql = "Delete from adaptation where id = " + id;
-            executeSQL(sql);
-            sql = "Delete from metadata where id = " + id;
-            executeSQL(sql);
+            InTransaction(transaction =>
+            {
+                using var target = new MySqlCommand(
+                    "SELECT id FROM metadata WHERE id = @id AND " + typeCondition + " FOR UPDATE",
+                    connection, transaction);
+                target.Parameters.AddWithValue("@id", id);
+                if (target.ExecuteScalar() == null)
+                {
+                    return;
+                }
 
+                foreach (string statement in deleteStatements)
+                {
+                    ExecuteWrite(transaction, statement, new MySqlParameter("@id", id));
+                }
+
+                ExecuteWrite(transaction, "DELETE FROM metadata WHERE id = @id", new MySqlParameter("@id", id));
+            });
         }
-
-        public void DeleteMetadata(MetaData meta)
-        {
-            DeleteMetaData(meta.Id);
-        }
-
-        /**
-         * Just to be sure that no constraints are violated the other deletes will call deleteMetaData
-         * This might be unnessesary but can not damage the data in the database.
-         * Since all other classes have MetaData as a base class this is a safe procedure.
-         * This also automatically gets rid of errors in the database, e.g. an movie thats also a episode without causing to much trouble
-         */
-
-        //Todo: only delete when item is part of class (deleteEpisode will not deleteMovie if no episode with that id exists)
-
 
         public void DeleteShow(int id)
         {
-            DeleteMetaData(id);
-        }
-
-        public void DeleteShow(Adaptation show)
-        {
-            DeleteMetaData(show.Id);
+            DeleteMedia(id,
+                "EXISTS (SELECT 1 FROM adaptation WHERE id = @id) AND NOT EXISTS (SELECT 1 FROM movie WHERE id = @id)",
+                "DELETE FROM season_show WHERE showId = @id",
+                "DELETE FROM genre_adaptation WHERE adaptation = @id",
+                "DELETE FROM adaptation WHERE id = @id");
         }
 
         public void DeleteSeason(int id)
         {
-            DeleteMetaData(id);
-        }
-        public void DeleteSeason(Season season)
-        {
-            DeleteMetaData(season.Id);
+            DeleteMedia(id,
+                "EXISTS (SELECT 1 FROM season_show WHERE seasonId = @id) " +
+                "AND NOT EXISTS (SELECT 1 FROM adaptation WHERE id = @id) " +
+                "AND NOT EXISTS (SELECT 1 FROM episode WHERE id = @id)",
+                "DELETE FROM episode_season WHERE seasonId = @id",
+                "DELETE FROM season_show WHERE seasonId = @id");
         }
 
         public void DeleteEpisode(int id)
         {
-            DeleteMetaData(id);
-        }
-        public void DeleteEpisode(Episode episode)
-        {
-           DeleteMetaData(episode.Id);
+            DeleteMedia(id, "EXISTS (SELECT 1 FROM episode WHERE id = @id)",
+                "DELETE FROM episode_season WHERE episodeId = @id",
+                "DELETE FROM episode WHERE id = @id");
         }
 
         public void DeleteMovie(int id)
         {
-            DeleteMetaData(id);
-        }
-        public void DeleteMovie(Movie movie)
-        {
-            DeleteMetaData(movie.Id);
-        }
-
-        public void DeleteAdaptation(int id)
-        {
-            DeleteMetaData(id);
-        }
-        public void DeleteAdaptation(Adaptation adaptation)
-        {
-            DeleteMetaData(adaptation.Id);
+            DeleteMedia(id, "EXISTS (SELECT 1 FROM movie WHERE id = @id)",
+                "DELETE FROM genre_adaptation WHERE adaptation = @id",
+                "DELETE FROM movie WHERE id = @id",
+                "DELETE FROM adaptation WHERE id = @id");
         }
 
         /* Irrelevant Select

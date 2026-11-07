@@ -90,11 +90,23 @@ namespace HomeStreamingServiceAPI.Model
 
         public void executeSQL(string sql)
         {
+            ExecuteNonQuery(sql);
+        }
+
+        private void ExecuteNonQuery(string sql, params MySqlParameter[] parameters)
+        {
             if (this.OpenConnection() == true)
             {
-                MySqlCommand cmd = new MySqlCommand(sql, connection);
-                cmd.ExecuteNonQuery();
-                this.CloseConnection();
+                try
+                {
+                    using var command = new MySqlCommand(sql, connection);
+                    command.Parameters.AddRange(parameters);
+                    command.ExecuteNonQuery();
+                }
+                finally
+                {
+                    CloseConnection();
+                }
             }
         }
 
@@ -601,39 +613,12 @@ namespace HomeStreamingServiceAPI.Model
 
         public void AddMetadata(int id, string title, string originalTitle, string description)
         {
-            String sql = "INSERT INTO `metadata` (`id`, `title`, `originalTitle`, `description`) VALUES(";
-            if (id >= 0)
-            {
-                sql += "'"+id + "', ";
-            }else
-            {
-                sql += "NULL, ";
-            }
-            if (title != null)
-            {
-                sql += "'" + title + "',";
-            }
-            else
-            {
-                sql += "NULL, ";
-            }
-            if (originalTitle != null)
-            {
-                sql += "'" + originalTitle + "', ";
-            }
-            else
-            {
-                sql += "NULL, ";
-            }
-            if (description!= null)
-            {
-                sql += "'" + description + "')"; 
-            }
-            else
-            {
-                sql += "NULL)";
-            }
-            executeSQL(sql);
+            ExecuteNonQuery(
+                "INSERT INTO `metadata` (`id`, `title`, `originalTitle`, `description`) VALUES (@id, @title, @originalTitle, @description)",
+                new MySqlParameter("@id", id >= 0 ? (object)id : DBNull.Value),
+                new MySqlParameter("@title", (object)title ?? DBNull.Value),
+                new MySqlParameter("@originalTitle", (object)originalTitle ?? DBNull.Value),
+                new MySqlParameter("@description", (object)description ?? DBNull.Value));
         }
 
         public void AddMetadata(MetaData meta)
@@ -705,10 +690,12 @@ namespace HomeStreamingServiceAPI.Model
             {
                 id = GetLastID("metadata"); // getting id from metadata that was inserted
             }
-            string sql = "INSERT INTO `episode` values('" + id + "', '" + episode.Duration + "', '" + episode.FilePath + "')";
-            executeSQL(sql);
+            ExecuteNonQuery("INSERT INTO `episode` VALUES (@id, @duration, @filePath)",
+                new MySqlParameter("@id", id),
+                new MySqlParameter("@duration", episode.Duration),
+                new MySqlParameter("@filePath", episode.FilePath ?? string.Empty));
 
-            sql = "Insert into `episode_season` values('" + id + "', '" + episode.Season.Id + "')";
+            string sql = "Insert into `episode_season` values('" + id + "', '" + episode.Season.Id + "')";
             executeSQL(sql);
         }
 
@@ -729,8 +716,9 @@ namespace HomeStreamingServiceAPI.Model
 
             foreach (var genre in genreList)
             {
-                sql = "INSERT INTO `genre_adaptation` (`genre`, `adaptation`) Values('" + genre.Name + "', '" + mId + "')";
-                executeSQL(sql);
+                ExecuteNonQuery("INSERT INTO `genre_adaptation` (`genre`, `adaptation`) VALUES (@genre, @adaptation)",
+                    new MySqlParameter("@genre", genre.Name ?? string.Empty),
+                    new MySqlParameter("@adaptation", mId));
             }
 
 
@@ -771,39 +759,27 @@ namespace HomeStreamingServiceAPI.Model
             {
                 mId = GetLastID("metadata");
             }
-            string sql;
             if (!String.IsNullOrEmpty(movie.FilePath))
             {
-                 sql = "INSERT INTO `movie` (`id`, `duration`, `filePath`) Values('" + mId + "', '" + movie.Duration + "', '" + movie.FilePath + "')";
+                ExecuteNonQuery("INSERT INTO `movie` (`id`, `duration`, `filePath`) VALUES (@id, @duration, @filePath)",
+                    new MySqlParameter("@id", mId),
+                    new MySqlParameter("@duration", movie.Duration),
+                    new MySqlParameter("@filePath", movie.FilePath));
             }
             else
             {
-                sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
+                ExecuteNonQuery("INSERT INTO `movie` (`id`, `duration`) VALUES (@id, @duration)",
+                    new MySqlParameter("@id", mId),
+                    new MySqlParameter("@duration", movie.Duration));
             }
-            executeSQL(sql);
 
         }
 
         public void AddFranchise(int id, string name)
         {
-            String sql = "INSERT INTO `franchise` (`id`, `name`) VALUES(";
-            if (id >= 0)
-            {
-                sql += "'" + id + "', ";
-            }
-            else
-            {
-                sql += "NULL, ";
-            }
-            if (name != null)
-            {
-                sql += "'" + name + "')";
-            }
-            else
-            {
-                sql += "NULL)";
-            }
-            executeSQL(sql);
+            ExecuteNonQuery("INSERT INTO `franchise` (`id`, `name`) VALUES (@id, @name)",
+                new MySqlParameter("@id", id >= 0 ? (object)id : DBNull.Value),
+                new MySqlParameter("@name", (object)name ?? DBNull.Value));
 
         }
 
@@ -814,8 +790,8 @@ namespace HomeStreamingServiceAPI.Model
 
         public void AddGenre(string name)
         {
-            string sql = "INSERT INTO `genre` (`name`) Values('" + name + "')";
-            executeSQL(sql);
+            ExecuteNonQuery("INSERT INTO `genre` (`name`) VALUES (@name)",
+                new MySqlParameter("@name", name ?? string.Empty));
         }
 
         public void AddGenre(Genre genre)
@@ -826,10 +802,10 @@ namespace HomeStreamingServiceAPI.Model
 
         public void DeleteGenre(string name)
         {
-            string sql = "Delete from genre_adaption where genre = " + name;
-            executeSQL(sql);
-            sql = "Delete from genre where name = "+name;
-            executeSQL(sql);
+            ExecuteNonQuery("DELETE FROM genre_adaptation WHERE genre = @name",
+                new MySqlParameter("@name", (object)name ?? DBNull.Value));
+            ExecuteNonQuery("DELETE FROM genre WHERE name = @name",
+                new MySqlParameter("@name", (object)name ?? DBNull.Value));
         }
         
         public void DeleteGenre(Genre genre)

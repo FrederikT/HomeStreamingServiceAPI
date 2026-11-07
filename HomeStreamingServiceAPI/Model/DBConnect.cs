@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,11 +13,7 @@ namespace HomeStreamingServiceAPI.Model
 {
     class DBConnect
     {
-        private MySqlConnection connection;
-        private string server;
-        private string database;
-        private string userName;
-        private string password;
+        private readonly MySqlConnection connection;
         private List<MetaData> metaDataList;
         private List<Genre> genreList;
         private List<Franchise> franchiseList;
@@ -27,21 +23,14 @@ namespace HomeStreamingServiceAPI.Model
         private List<Season> seasonList;
         private List<Adaptation> showList;
 
-        //Constructor
         public DBConnect()
         {
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            server = "localhost";
-            database = "homestreamingservice";
-            userName = "streaming_user";
-            password = "streaming";
-            string connectionString;
-            connectionString = "SERVER=" + server + ";" + "DATABASE=" +
-                               database + ";" + "UID=" + userName + ";" + "PASSWORD=" + password + ";";
+            const string variable = "ConnectionStrings__StreamingDatabase";
+            string connectionString = Environment.GetEnvironmentVariable(variable);
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException($"Set {variable} to configure the streaming database.");
+            }
 
             connection = new MySqlConnection(connectionString);
         }

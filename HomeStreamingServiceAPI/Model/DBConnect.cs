@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,11 +13,7 @@ namespace HomeStreamingServiceAPI.Model
 {
     class DBConnect
     {
-        private MySqlConnection connection;
-        private string server;
-        private string database;
-        private string userName;
-        private string password;
+        private readonly MySqlConnection connection;
         private List<MetaData> metaDataList;
         private List<Genre> genreList;
         private List<Franchise> franchiseList;
@@ -27,21 +23,14 @@ namespace HomeStreamingServiceAPI.Model
         private List<Season> seasonList;
         private List<Adaptation> showList;
 
-        //Constructor
         public DBConnect()
         {
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            server = "localhost";
-            database = "homestreamingservice";
-            userName = "streaming_user";
-            password = "streaming";
-            string connectionString;
-            connectionString = "SERVER=" + server + ";" + "DATABASE=" +
-                               database + ";" + "UID=" + userName + ";" + "PASSWORD=" + password + ";";
+            const string variable = "ConnectionStrings__StreamingDatabase";
+            string connectionString = Environment.GetEnvironmentVariable(variable);
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException($"Set {variable} to configure the streaming database.");
+            }
 
             connection = new MySqlConnection(connectionString);
         }
@@ -90,11 +79,23 @@ namespace HomeStreamingServiceAPI.Model
 
         public void executeSQL(string sql)
         {
+            ExecuteNonQuery(sql);
+        }
+
+        private void ExecuteNonQuery(string sql, params MySqlParameter[] parameters)
+        {
             if (this.OpenConnection() == true)
             {
-                MySqlCommand cmd = new MySqlCommand(sql, connection);
-                cmd.ExecuteNonQuery();
-                this.CloseConnection();
+                try
+                {
+                    using var command = new MySqlCommand(sql, connection);
+                    command.Parameters.AddRange(parameters);
+                    command.ExecuteNonQuery();
+                }
+                finally
+                {
+                    CloseConnection();
+                }
             }
         }
 
@@ -572,238 +573,114 @@ namespace HomeStreamingServiceAPI.Model
 
         }
 
-        private int GetLastID(string tableName)
+        private void InTransaction(Action<MySqlTransaction> write)
         {
-            int id = -1;
-            string sql = "Select Max(id) from " + tableName;
-            if (this.OpenConnection() == true)
+            connection.Open();
+            try
             {
-                //Create Command
-                MySqlCommand cmd = new MySqlCommand(sql, connection);
-                //Create a data reader and Execute the command
-                MySqlDataReader dataReader = cmd.ExecuteReader();
+                using var transaction = connection.BeginTransaction();
+                write(transaction);
+                transaction.Commit();
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
 
-                //Read the data and store
-                while (dataReader.Read())
-                {
-                    id = int.Parse(dataReader["Max(id)"].ToString());
-                }
+        private long ExecuteWrite(MySqlTransaction transaction, string sql, params MySqlParameter[] parameters)
+        {
+            using var command = new MySqlCommand(sql, connection, transaction);
+            command.Parameters.AddRange(parameters);
+            command.ExecuteNonQuery();
+            return command.LastInsertedId;
+        }
 
-                //close Data Reader
-                dataReader.Close();
+        private int InsertMetadata(MySqlTransaction transaction, MetaData metadata)
+        {
+            long insertedId = ExecuteWrite(transaction,
+                "INSERT INTO metadata (id, title, originalTitle, description) VALUES (@id, @title, @originalTitle, @description)",
+                new MySqlParameter("@id", metadata.Id >= 0 ? (object)metadata.Id : DBNull.Value),
+                new MySqlParameter("@title", (object)metadata.Title ?? DBNull.Value),
+                new MySqlParameter("@originalTitle", (object)metadata.OriginalTitle ?? DBNull.Value),
+                new MySqlParameter("@description", (object)metadata.Description ?? DBNull.Value));
+            return metadata.Id >= 0 ? metadata.Id : checked((int)insertedId);
+        }
 
-                //close Connection
-                this.CloseConnection();
+        public void AddSeason(Season season)
+        {
+            InTransaction(transaction =>
+            {
+                int id = InsertMetadata(transaction, season);
+                ExecuteWrite(transaction, "INSERT INTO season_show (seasonId, showId) VALUES (@id, @showId)",
+                    new MySqlParameter("@id", id),
+                    new MySqlParameter("@showId", season.Show.Id));
+            });
+        }
+
+        public void AddEpisode(Episode episode)
+        {
+            InTransaction(transaction =>
+            {
+                int id = InsertMetadata(transaction, episode);
+                ExecuteWrite(transaction, "INSERT INTO episode (id, duration, filePath) VALUES (@id, @duration, @filePath)",
+                    new MySqlParameter("@id", id),
+                    new MySqlParameter("@duration", episode.Duration),
+                    new MySqlParameter("@filePath", episode.FilePath ?? string.Empty));
+                ExecuteWrite(transaction, "INSERT INTO episode_season (episodeId, seasonId) VALUES (@id, @seasonId)",
+                    new MySqlParameter("@id", id),
+                    new MySqlParameter("@seasonId", episode.Season.Id));
+            });
+        }
+
+        private int InsertAdaptation(MySqlTransaction transaction, Adaptation adaptation)
+        {
+            int id = InsertMetadata(transaction, adaptation);
+            ExecuteWrite(transaction, "INSERT INTO adaptation (id, franchise) VALUES (@id, @franchise)",
+                new MySqlParameter("@id", id),
+                new MySqlParameter("@franchise", adaptation.Franchise.Id));
+
+            foreach (var genre in adaptation.Genre)
+            {
+                ExecuteWrite(transaction, "INSERT INTO genre_adaptation (genre, adaptation) VALUES (@genre, @id)",
+                    new MySqlParameter("@genre", genre.Name ?? string.Empty),
+                    new MySqlParameter("@id", id));
             }
 
             return id;
         }
 
-        public void AddMetadata(int id, string title, string originalTitle, string description)
-        {
-            String sql = "INSERT INTO `metadata` (`id`, `title`, `originalTitle`, `description`) VALUES(";
-            if (id >= 0)
-            {
-                sql += "'"+id + "', ";
-            }else
-            {
-                sql += "NULL, ";
-            }
-            if (title != null)
-            {
-                sql += "'" + title + "',";
-            }
-            else
-            {
-                sql += "NULL, ";
-            }
-            if (originalTitle != null)
-            {
-                sql += "'" + originalTitle + "', ";
-            }
-            else
-            {
-                sql += "NULL, ";
-            }
-            if (description!= null)
-            {
-                sql += "'" + description + "')"; 
-            }
-            else
-            {
-                sql += "NULL)";
-            }
-            executeSQL(sql);
-        }
-
-        public void AddMetadata(MetaData meta)
-        {
-            AddMetadata(meta.Id, meta.Title, meta.OriginalTitle, meta.Description);
-        }
-
-        public void AddSeason(int id, string title, string originalTitle, string description, int showId)
-        {
-            AddMetadata(id, title, originalTitle, description);
-
-            if (id >= 0)
-            {
-
-            }
-            else
-            {
-                id = GetLastID("metadata");
-            }
-
-            string sql = "INSERT INTO `season_show` (`seasonId`, `showId`) Values('" + id + "', '" + showId + "')";
-            executeSQL(sql);
-        }
-
-        public void AddSeason(int id, string title, string originalTitle, string description, Adaptation show)
-        {
-            AddSeason(id,title,originalTitle,description,show.Id);
-        }
-        
-        public void AddSeason(Season season)
-        { 
-            AddSeason(season.Id, season.Title, season.OriginalTitle, season.Description, season.Show.Id);
-        }
-
-        public void AddEpisode(int id, string title, string originalTitle, string description, int duration, Season season)
-        {
-           
-            AddMetadata(id, title, originalTitle, description);
-            
-            if ( id>=0)
-            {
-               
-            }
-            else
-            {
-                 id = GetLastID("metadata");
-            }
-
-            string sql = "INSERT INTO `episode` (`id`, `duration`) Values('"+id+"', '"+duration+"')";
-            executeSQL(sql);
-            
-
-            sql = "Insert into episode_season values('" + id + "', '" + season.Id + "')";
-            executeSQL(sql);
-
-        }
-
-        public void AddEpisode(Episode episode)
-        {
-            MetaData meta = new MetaData(episode.Id, episode.Title, episode.OriginalTitle, episode.Description);
-            AddMetadata(meta);
-            int id;
-
-            if (episode.Id >= 0)
-            {
-                id = episode.Id;
-            }
-            else
-            {
-                id = GetLastID("metadata"); // getting id from metadata that was inserted
-            }
-            string sql = "INSERT INTO `episode` values('" + id + "', '" + episode.Duration + "', '" + episode.FilePath + "')";
-            executeSQL(sql);
-
-            sql = "Insert into `episode_season` values('" + id + "', '" + episode.Season.Id + "')";
-            executeSQL(sql);
-        }
-
-        public void AddAdaptation(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList)
-        {
-            int mId;
-            AddMetadata(id, title, originalTitle, description);
-            if (id >= 0)
-            {
-                mId = id;
-            }
-            else
-            {
-                mId = GetLastID("metadata");
-            }
-            string sql = "INSERT INTO `adaptation` (`id`, `franchise`) Values('" + mId + "', '" + franchise.Id + "')";
-            executeSQL(sql);
-
-            foreach (var genre in genreList)
-            {
-                sql = "INSERT INTO `genre_adaptation` (`genre`, `adaptation`) Values('" + genre.Name + "', '" + mId + "')";
-                executeSQL(sql);
-            }
-
-
-        }
-
         public void AddAdaptation(Adaptation adaptation)
         {
-            AddAdaptation(adaptation.Id, adaptation.Title, adaptation.OriginalTitle, adaptation.Description, adaptation.Franchise, adaptation.Genre);
-            
-        }
-
-        public void AddMovie(int id, string title, string originalTitle, string description, Franchise franchise, List<Genre> genreList, int duration)
-        {
-            int mId;
-            AddAdaptation(id, title, originalTitle, description, franchise, genreList);
-            if (id >= 0)
-            {
-                mId = id;
-            }
-            else
-            {
-                mId = GetLastID("metadata");
-            }
-            string sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + duration + "')";
-            executeSQL(sql);
-
+            InTransaction(transaction => InsertAdaptation(transaction, adaptation));
         }
 
         public void AddMovie(Movie movie)
         {
-            int mId;
-            AddAdaptation(movie.Id, movie.Title, movie.OriginalTitle, movie.Description, movie.Franchise, movie.Genre);
-            if (movie.Id >= 0)
+            InTransaction(transaction =>
             {
-                mId = movie.Id;
-            }
-            else
-            {
-                mId = GetLastID("metadata");
-            }
-            string sql;
-            if (!String.IsNullOrEmpty(movie.FilePath))
-            {
-                 sql = "INSERT INTO `movie` (`id`, `duration`, `filePath`) Values('" + mId + "', '" + movie.Duration + "', '" + movie.FilePath + "')";
-            }
-            else
-            {
-                sql = "INSERT INTO `movie` (`id`, `duration`) Values('" + mId + "', '" + movie.Duration + "')";
-            }
-            executeSQL(sql);
-
+                int id = InsertAdaptation(transaction, movie);
+                if (string.IsNullOrEmpty(movie.FilePath))
+                {
+                    ExecuteWrite(transaction, "INSERT INTO movie (id, duration) VALUES (@id, @duration)",
+                        new MySqlParameter("@id", id),
+                        new MySqlParameter("@duration", movie.Duration));
+                }
+                else
+                {
+                    ExecuteWrite(transaction, "INSERT INTO movie (id, duration, filePath) VALUES (@id, @duration, @filePath)",
+                        new MySqlParameter("@id", id),
+                        new MySqlParameter("@duration", movie.Duration),
+                        new MySqlParameter("@filePath", movie.FilePath));
+                }
+            });
         }
 
         public void AddFranchise(int id, string name)
         {
-            String sql = "INSERT INTO `franchise` (`id`, `name`) VALUES(";
-            if (id >= 0)
-            {
-                sql += "'" + id + "', ";
-            }
-            else
-            {
-                sql += "NULL, ";
-            }
-            if (name != null)
-            {
-                sql += "'" + name + "')";
-            }
-            else
-            {
-                sql += "NULL)";
-            }
-            executeSQL(sql);
+            ExecuteNonQuery("INSERT INTO `franchise` (`id`, `name`) VALUES (@id, @name)",
+                new MySqlParameter("@id", id >= 0 ? (object)id : DBNull.Value),
+                new MySqlParameter("@name", (object)name ?? DBNull.Value));
 
         }
 
@@ -814,8 +691,8 @@ namespace HomeStreamingServiceAPI.Model
 
         public void AddGenre(string name)
         {
-            string sql = "INSERT INTO `genre` (`name`) Values('" + name + "')";
-            executeSQL(sql);
+            ExecuteNonQuery("INSERT INTO `genre` (`name`) VALUES (@name)",
+                new MySqlParameter("@name", name ?? string.Empty));
         }
 
         public void AddGenre(Genre genre)
@@ -826,10 +703,10 @@ namespace HomeStreamingServiceAPI.Model
 
         public void DeleteGenre(string name)
         {
-            string sql = "Delete from genre_adaption where genre = " + name;
-            executeSQL(sql);
-            sql = "Delete from genre where name = "+name;
-            executeSQL(sql);
+            ExecuteNonQuery("DELETE FROM genre_adaptation WHERE genre = @name",
+                new MySqlParameter("@name", (object)name ?? DBNull.Value));
+            ExecuteNonQuery("DELETE FROM genre WHERE name = @name",
+                new MySqlParameter("@name", (object)name ?? DBNull.Value));
         }
         
         public void DeleteGenre(Genre genre)
@@ -850,88 +727,60 @@ namespace HomeStreamingServiceAPI.Model
             DeleteFranchise(franchise.Id);
         }
 
-        public void DeleteMetaData(int id)
+        private void DeleteMedia(int id, string typeCondition, params string[] deleteStatements)
         {
-            string sql = "Delete from episode_season where episodeId = " + id;
-            executeSQL(sql);
-            sql = "Delete from episode_season where seasonId = " + id;
-            executeSQL(sql);
-            sql = "Delete from episode where id = " + id;
-            executeSQL(sql);
-            sql = "Delete from movie where id = " + id;
-            executeSQL(sql);
-            sql = "Delete from genre_adaptation where adaptation = " + id;
-            executeSQL(sql);
-            sql = "Delete from season_show where seasonId = " + id;
-            executeSQL(sql);
-            sql = "Delete from season_show where showId = " + id;
-            executeSQL(sql);
-            sql = "Delete from adaptation where id = " + id;
-            executeSQL(sql);
-            sql = "Delete from metadata where id = " + id;
-            executeSQL(sql);
+            InTransaction(transaction =>
+            {
+                using var target = new MySqlCommand(
+                    "SELECT id FROM metadata WHERE id = @id AND " + typeCondition + " FOR UPDATE",
+                    connection, transaction);
+                target.Parameters.AddWithValue("@id", id);
+                if (target.ExecuteScalar() == null)
+                {
+                    return;
+                }
 
+                foreach (string statement in deleteStatements)
+                {
+                    ExecuteWrite(transaction, statement, new MySqlParameter("@id", id));
+                }
+
+                ExecuteWrite(transaction, "DELETE FROM metadata WHERE id = @id", new MySqlParameter("@id", id));
+            });
         }
-
-        public void DeleteMetadata(MetaData meta)
-        {
-            DeleteMetaData(meta.Id);
-        }
-
-        /**
-         * Just to be sure that no constraints are violated the other deletes will call deleteMetaData
-         * This might be unnessesary but can not damage the data in the database.
-         * Since all other classes have MetaData as a base class this is a safe procedure.
-         * This also automatically gets rid of errors in the database, e.g. an movie thats also a episode without causing to much trouble
-         */
-
-        //Todo: only delete when item is part of class (deleteEpisode will not deleteMovie if no episode with that id exists)
-
 
         public void DeleteShow(int id)
         {
-            DeleteMetaData(id);
-        }
-
-        public void DeleteShow(Adaptation show)
-        {
-            DeleteMetaData(show.Id);
+            DeleteMedia(id,
+                "EXISTS (SELECT 1 FROM adaptation WHERE id = @id) AND NOT EXISTS (SELECT 1 FROM movie WHERE id = @id)",
+                "DELETE FROM season_show WHERE showId = @id",
+                "DELETE FROM genre_adaptation WHERE adaptation = @id",
+                "DELETE FROM adaptation WHERE id = @id");
         }
 
         public void DeleteSeason(int id)
         {
-            DeleteMetaData(id);
-        }
-        public void DeleteSeason(Season season)
-        {
-            DeleteMetaData(season.Id);
+            DeleteMedia(id,
+                "EXISTS (SELECT 1 FROM season_show WHERE seasonId = @id) " +
+                "AND NOT EXISTS (SELECT 1 FROM adaptation WHERE id = @id) " +
+                "AND NOT EXISTS (SELECT 1 FROM episode WHERE id = @id)",
+                "DELETE FROM episode_season WHERE seasonId = @id",
+                "DELETE FROM season_show WHERE seasonId = @id");
         }
 
         public void DeleteEpisode(int id)
         {
-            DeleteMetaData(id);
-        }
-        public void DeleteEpisode(Episode episode)
-        {
-           DeleteMetaData(episode.Id);
+            DeleteMedia(id, "EXISTS (SELECT 1 FROM episode WHERE id = @id)",
+                "DELETE FROM episode_season WHERE episodeId = @id",
+                "DELETE FROM episode WHERE id = @id");
         }
 
         public void DeleteMovie(int id)
         {
-            DeleteMetaData(id);
-        }
-        public void DeleteMovie(Movie movie)
-        {
-            DeleteMetaData(movie.Id);
-        }
-
-        public void DeleteAdaptation(int id)
-        {
-            DeleteMetaData(id);
-        }
-        public void DeleteAdaptation(Adaptation adaptation)
-        {
-            DeleteMetaData(adaptation.Id);
+            DeleteMedia(id, "EXISTS (SELECT 1 FROM movie WHERE id = @id)",
+                "DELETE FROM genre_adaptation WHERE adaptation = @id",
+                "DELETE FROM movie WHERE id = @id",
+                "DELETE FROM adaptation WHERE id = @id");
         }
 
         /* Irrelevant Select
